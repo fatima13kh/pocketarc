@@ -1,0 +1,30 @@
+# IDE
+.idea/
+*.iml
+.vscode/
+.DS_Store
+
+# Environment files
+.env
+.env.local
+.env.production
+*.env
+
+# Logs
+*.log
+logs/
+
+# OS
+Thumbs.db
+
+# Backend
+backend/target/
+backend/.mvn/
+backend/mvnw
+backend/mvnw.cmd
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/.vite/
