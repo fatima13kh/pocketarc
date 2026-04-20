@@ -1,0 +1,65 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: pocketarc
+
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    open-in-view: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: false
+    validate-on-migrate: true
+
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: 604800000
+
+cloudinary:
+  cloud-name: ${CLOUDINARY_CLOUD_NAME}
+  api-key: ${CLOUDINARY_API_KEY}
+  api-secret: ${CLOUDINARY_API_SECRET}
+
+resend:
+  api-key: ${RESEND_API_KEY}
+  from-email: noreply@pocketarc.com
+
+twelve-data:
+  api-key: ${TWELVE_DATA_API_KEY}
+
+groq:
+  api-key: ${GROQ_API_KEY}
+
+frankfurter:
+  base-url: https://api.frankfurter.app
+
+cors:
+  allowed-origins: ${CORS_ORIGINS}
+
+app:
+  admin:
+    username: ${ADMIN_USERNAME}
+    email: ${ADMIN_EMAIL}
+    password: ${ADMIN_PASSWORD}
+    phone: ${ADMIN_PHONE}
