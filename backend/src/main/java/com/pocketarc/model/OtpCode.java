@@ -2,11 +2,13 @@ package com.pocketarc.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "otp_codes")
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor
+@Builder
 public class OtpCode {
 
     @Id
@@ -24,8 +26,15 @@ public class OtpCode {
     private LocalDateTime expiresAt;
 
     @Column(name = "is_used", nullable = false)
+    @Builder.Default
     private Boolean isUsed = false;
 
     @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+    }
 }

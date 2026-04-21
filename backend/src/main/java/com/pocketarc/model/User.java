@@ -2,12 +2,14 @@ package com.pocketarc.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "users")
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor
+@Builder
 public class User {
 
     @Id
@@ -27,14 +29,23 @@ public class User {
     private String passwordHash;
 
     @Column(name = "is_admin", nullable = false)
+    @Builder.Default
     private Boolean isAdmin = false;
 
     @Column(name = "is_verified", nullable = false)
+    @Builder.Default
     private Boolean isVerified = false;
 
     @Column(name = "cash_balance", nullable = false, precision = 12, scale = 2)
+    @Builder.Default
     private BigDecimal cashBalance = BigDecimal.ZERO;
 
     @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+    }
 }

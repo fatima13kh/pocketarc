@@ -43,7 +43,7 @@ cloudinary:
 
 resend:
   api-key: ${RESEND_API_KEY}
-  from-email: noreply@pocketarc.com
+  from-email: ${RESEND_FROM_EMAIL:noreply@resend.dev}
 
 twelve-data:
   api-key: ${TWELVE_DATA_API_KEY}

@@ -1,4 +1,6 @@
 package com.pocketarc.dto.response;
 
-public class ApiResponse {
-}
+public record ApiResponse(
+        Boolean success,
+        String message
+) {}
