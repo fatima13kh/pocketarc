@@ -10,7 +10,7 @@ export default function LandingPage() {
       <nav className="navbar">
         <span className="navbar-brand">PocketArc</span>
         <div className="navbar-right">
-          {/* No profile button on landing */}
+          {}
         </div>
       </nav>
 

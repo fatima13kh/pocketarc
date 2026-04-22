@@ -15,6 +15,8 @@ import PortfolioPage from './pages/PortfolioPage';
 import InvestmentStoriesPage from './pages/InvestmentStoriesPage';
 import StoryPlayPage from './pages/StoryPlayPage';
 import AdminStoriesPage from './pages/admin/AdminStoriesPage';
+import StoryEditorPage from './pages/admin/StoryEditorPage';
+import GenerateStoryPage from './pages/admin/GenerateStoryPage';
 
 function PrivateRoute({ children }) {
   const { user } = useAuth();
@@ -42,6 +44,7 @@ function AppRoutes() {
       <Route path="/verify-otp" element={<GuestRoute><VerifyOtpPage /></GuestRoute>} />
       <Route path="/forgot-password" element={<GuestRoute><ForgotPasswordPage /></GuestRoute>} />
       <Route path="/reset-password" element={<GuestRoute><ResetPasswordPage /></GuestRoute>} />
+
       <Route path="/dashboard" element={<PrivateRoute><DashboardPage /></PrivateRoute>} />
       <Route path="/goals" element={<PrivateRoute><GoalsPage /></PrivateRoute>} />
       <Route path="/simulator" element={<PrivateRoute><InvestmentSimulatorPage /></PrivateRoute>} />
@@ -49,7 +52,12 @@ function AppRoutes() {
       <Route path="/stories" element={<PrivateRoute><InvestmentStoriesPage /></PrivateRoute>} />
       <Route path="/stories/:id/play" element={<PrivateRoute><StoryPlayPage /></PrivateRoute>} />
       <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
-      <Route path="/admin/stories" element={<AdminRoute><AdminStoriesPage /></AdminRoute>} />
+
+      <Route path="/admin/stories" element={<AdminRoute><InvestmentStoriesPage /></AdminRoute>} />
+      <Route path="/stories/new" element={<AdminRoute><StoryEditorPage /></AdminRoute>} />
+      <Route path="/stories/generate" element={<AdminRoute><GenerateStoryPage /></AdminRoute>} />
+      <Route path="/stories/:id/edit" element={<AdminRoute><StoryEditorPage /></AdminRoute>} />
+
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

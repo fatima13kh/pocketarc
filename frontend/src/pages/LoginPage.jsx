@@ -17,28 +17,66 @@ export default function LoginPage() {
   const [apiError, setApiError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [loading, setLoading] = useState(false);
+  
+  // Timeout references
+  const [errorTimeout, setErrorTimeout] = useState(null);
+  const [successTimeout, setSuccessTimeout] = useState(null);
 
   useEffect(() => {
     if (location.state?.message) {
       setSuccessMsg(location.state.message);
+      // Clear success message after 10 seconds
+      const timeout = setTimeout(() => {
+        setSuccessMsg('');
+      }, 10000);
+      setSuccessTimeout(timeout);
     }
+    return () => {
+      if (successTimeout) clearTimeout(successTimeout);
+    };
   }, [location.state]);
+
+  // Clear API error after 10 seconds
+  useEffect(() => {
+    if (apiError) {
+      if (errorTimeout) clearTimeout(errorTimeout);
+      const timeout = setTimeout(() => {
+        setApiError('');
+      }, 10000);
+      setErrorTimeout(timeout);
+    }
+    return () => {
+      if (errorTimeout) clearTimeout(errorTimeout);
+    };
+  }, [apiError]);
+
+  // Clear validation errors after 10 seconds
+  useEffect(() => {
+    if (Object.keys(errors).length > 0) {
+      if (errorTimeout) clearTimeout(errorTimeout);
+      const timeout = setTimeout(() => {
+        setErrors({});
+      }, 10000);
+      setErrorTimeout(timeout);
+    }
+    return () => {
+      if (errorTimeout) clearTimeout(errorTimeout);
+    };
+  }, [errors]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
     
-    // Only clear error for the specific field being typed in
+    // Clear specific field error when user types
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
-    // Don't clear API error on typing - let user see it
   };
 
   const handleSubmit = async (ev) => {
     ev.preventDefault();
     
-    // Clear only validation errors, keep API error separate
     setErrors({});
     
     const errs = validateLogin(form.email, form.password);
