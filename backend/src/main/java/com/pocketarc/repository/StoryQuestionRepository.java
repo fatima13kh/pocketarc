@@ -8,4 +8,5 @@ import java.util.List;
 @Repository
 public interface StoryQuestionRepository extends JpaRepository<StoryQuestion, Long> {
     List<StoryQuestion> findAllByStoryIdOrderByQuestionOrderAsc(Long storyId);
+    long countByStoryId(Long storyId);
 }

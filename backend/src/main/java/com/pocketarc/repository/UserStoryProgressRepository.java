@@ -11,4 +11,6 @@ public interface UserStoryProgressRepository extends JpaRepository<UserStoryProg
     Optional<UserStoryProgress> findByUserIdAndStoryId(Long userId, Long storyId);
     boolean existsByUserIdAndStoryId(Long userId, Long storyId);
     List<UserStoryProgress> findAllByUserId(Long userId);
+    long countByStoryId(Long storyId);
+    boolean existsByStoryId(Long storyId);
 }
