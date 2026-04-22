@@ -3,7 +3,7 @@ import { storiesApi } from '../api/storiesApi';
 
 export function useStories(isAdmin = false) {
   const [stories, setStories] = useState([]);
-  const [totalPages, setTotalPages] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const [totalElements, setTotalElements] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -25,11 +25,16 @@ export function useStories(isAdmin = false) {
         ? storiesApi.getAdminStories
         : storiesApi.getStories;
       const res = await fn(filters);
-      setStories(res.data.stories);
-      setTotalPages(res.data.totalPages);
-      setTotalElements(res.data.totalElements);
+      
+      // ✅ FIX: response.data is now the array directly
+      const storiesArray = res.data || [];
+      setStories(storiesArray);
+      setTotalElements(storiesArray.length);
+      setTotalPages(1); // Frontend handles pagination
+      
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to load stories');
+      setStories([]);
     } finally {
       setLoading(false);
     }
