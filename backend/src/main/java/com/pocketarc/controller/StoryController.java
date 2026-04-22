@@ -4,12 +4,14 @@ import com.pocketarc.dto.request.*;
 import com.pocketarc.dto.response.*;
 import com.pocketarc.security.JwtTokenProvider;
 import com.pocketarc.service.StoryService;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -23,16 +25,13 @@ public class StoryController {
     // ── USER ENDPOINTS ────────────────────────────────────────────────────────
 
     @GetMapping
-    public ResponseEntity<StoryPageResponse> getUserStories(
+    public ResponseEntity<List<StoryResponse>> getUserStories(
             @RequestHeader("Authorization") String auth,
-            @RequestParam(defaultValue = "") String search,
-            @RequestParam(defaultValue = "") String difficulty,
-            @RequestParam(defaultValue = "") String category,
-            @RequestParam(defaultValue = "") String sortBy,
-            @RequestParam(defaultValue = "0") int page) {
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String difficulty,
+            @RequestParam(required = false) String category) {
         Long userId = extractUserId(auth);
-        return ResponseEntity.ok(storyService.getUserStories(
-                userId, search, difficulty, category, sortBy, page));
+        return ResponseEntity.ok(storyService.getUserStories(userId, search, difficulty, category));
     }
 
     @GetMapping("/{storyId}")
@@ -73,15 +72,12 @@ public class StoryController {
 
     @GetMapping("/admin")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<StoryPageResponse> getAdminStories(
-            @RequestParam(defaultValue = "") String search,
-            @RequestParam(defaultValue = "") String difficulty,
-            @RequestParam(defaultValue = "") String category,
-            @RequestParam(defaultValue = "") String status,
-            @RequestParam(defaultValue = "") String sortBy,
-            @RequestParam(defaultValue = "0") int page) {
-        return ResponseEntity.ok(storyService.getAdminStories(
-                search, difficulty, category, status, sortBy, page));
+    public ResponseEntity<List<StoryResponse>> getAdminStories(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String difficulty,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String status) {
+        return ResponseEntity.ok(storyService.getAdminStories(search, difficulty, category, status));
     }
 
     @PostMapping("/admin")

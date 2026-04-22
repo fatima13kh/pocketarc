@@ -1,46 +1,64 @@
 package com.pocketarc.repository;
 
 import com.pocketarc.model.Story;
+import com.pocketarc.model.enums.DifficultyLevel;
+import com.pocketarc.model.enums.StoryCategory;
 import com.pocketarc.model.enums.StoryStatus;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import java.util.List;
 
 @Repository
 public interface StoryRepository extends JpaRepository<Story, Long> {
 
-    Page<Story> findAllByStatus(StoryStatus status, Pageable pageable);
+    // For regular users: only published stories
+    List<Story> findByStatus(StoryStatus status);
 
-    Page<Story> findAllByStatusAndTitleContainingIgnoreCase(
-            StoryStatus status, String title, Pageable pageable);
+    List<Story> findByStatusAndTitleContainingIgnoreCase(StoryStatus status, String title);
 
-    @Query("SELECT s FROM Story s WHERE " +
-            "(:status IS NULL OR s.status = :status) AND " +
-            "(:title IS NULL OR LOWER(s.title) LIKE LOWER(CONCAT('%', :title, '%'))) AND " +
-            "(:difficulty IS NULL OR s.difficulty = :difficulty) AND " +
-            "(:category IS NULL OR s.category = :category)")
-    Page<Story> findWithFilters(
-            @Param("status") StoryStatus status,
-            @Param("title") String title,
-            @Param("difficulty") String difficulty,
-            @Param("category") String category,
-            Pageable pageable);
+    List<Story> findByStatusAndDifficulty(StoryStatus status, DifficultyLevel difficulty);
 
-    // Admin: all statuses
-    @Query("SELECT s FROM Story s WHERE " +
-            "(:title IS NULL OR LOWER(s.title) LIKE LOWER(CONCAT('%', :title, '%'))) AND " +
-            "(:difficulty IS NULL OR s.difficulty = :difficulty) AND " +
-            "(:category IS NULL OR s.category = :category) AND " +
-            "(:status IS NULL OR s.status = :status)")
-    Page<Story> findAdminWithFilters(
-            @Param("title") String title,
-            @Param("difficulty") String difficulty,
-            @Param("category") String category,
-            @Param("status") StoryStatus status,
-            Pageable pageable);
+    List<Story> findByStatusAndCategory(StoryStatus status, StoryCategory category);
+
+    List<Story> findByStatusAndDifficultyAndCategory(StoryStatus status, DifficultyLevel difficulty, StoryCategory category);
+
+    List<Story> findByStatusAndTitleContainingIgnoreCaseAndDifficulty(StoryStatus status, String title, DifficultyLevel difficulty);
+
+    List<Story> findByStatusAndTitleContainingIgnoreCaseAndCategory(StoryStatus status, String title, StoryCategory category);
+
+    List<Story> findByStatusAndTitleContainingIgnoreCaseAndDifficultyAndCategory(StoryStatus status, String title, DifficultyLevel difficulty, StoryCategory category);
+
+    // For admin: all stories (no status filter)
+    @NotNull List<Story> findAll();
+
+    List<Story> findByTitleContainingIgnoreCase(String title);
+
+    List<Story> findByDifficulty(DifficultyLevel difficulty);
+
+    List<Story> findByCategory(StoryCategory category);
+
+    List<Story> findByTitleContainingIgnoreCaseAndDifficulty(String title, DifficultyLevel difficulty);
+
+    List<Story> findByTitleContainingIgnoreCaseAndCategory(String title, StoryCategory category);
+
+    List<Story> findByTitleContainingIgnoreCaseAndStatus(String title, StoryStatus status);
+
+    List<Story> findByDifficultyAndCategory(DifficultyLevel difficulty, StoryCategory category);
+
+    List<Story> findByDifficultyAndStatus(DifficultyLevel difficulty, StoryStatus status);
+
+    List<Story> findByCategoryAndStatus(StoryCategory category, StoryStatus status);
+
+    List<Story> findByTitleContainingIgnoreCaseAndDifficultyAndCategory(String title, DifficultyLevel difficulty, StoryCategory category);
+
+    List<Story> findByTitleContainingIgnoreCaseAndDifficultyAndStatus(String title, DifficultyLevel difficulty, StoryStatus status);
+
+    List<Story> findByTitleContainingIgnoreCaseAndCategoryAndStatus(String title, StoryCategory category, StoryStatus status);
+
+    List<Story> findByDifficultyAndCategoryAndStatus(DifficultyLevel difficulty, StoryCategory category, StoryStatus status);
+
+    List<Story> findByTitleContainingIgnoreCaseAndDifficultyAndCategoryAndStatus(String title, DifficultyLevel difficulty, StoryCategory category, StoryStatus status);
 
     boolean existsByTitleIgnoreCase(String title);
 }

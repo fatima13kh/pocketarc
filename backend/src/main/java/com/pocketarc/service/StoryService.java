@@ -12,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,67 +35,151 @@ public class StoryService {
     @Value("${groq.api-key}")
     private String groqApiKey;
 
-    private static final int PAGE_SIZE = 10;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     // ─────────────────────────────────────────────────────────────────────────
-    // USER — GET STORIES (paginated, published only)
+    // USER — GET STORIES (published only)
     // ─────────────────────────────────────────────────────────────────────────
+    @Transactional(readOnly = true)
+    public List<StoryResponse> getUserStories(Long userId, String search, String difficulty, String category) {
 
-    public StoryPageResponse getUserStories(
-            Long userId, String search, String difficulty,
-            String category, String sortBy, int page) {
+        DifficultyLevel difficultyEnum = null;
+        if (difficulty != null && !difficulty.isBlank()) {
+            try {
+                difficultyEnum = DifficultyLevel.valueOf(difficulty.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                log.warn("Invalid difficulty value: {}", difficulty);
+            }
+        }
 
-        Pageable pageable = buildPageable(sortBy, page);
+        StoryCategory categoryEnum = null;
+        if (category != null && !category.isBlank()) {
+            try {
+                categoryEnum = StoryCategory.valueOf(category.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                log.warn("Invalid category value: {}", category);
+            }
+        }
 
-        Page<Story> storyPage = storyRepository.findWithFilters(
-                StoryStatus.PUBLISHED, search, difficulty, category, pageable);
+        List<Story> stories;
+        boolean hasSearch = search != null && !search.isBlank();
+        boolean hasDifficulty = difficultyEnum != null;
+        boolean hasCategory = categoryEnum != null;
 
-        List<StoryResponse> stories = storyPage.getContent().stream()
+        if (hasSearch && hasDifficulty && hasCategory) {
+            stories = storyRepository.findByStatusAndTitleContainingIgnoreCaseAndDifficultyAndCategory(
+                    StoryStatus.PUBLISHED, search, difficultyEnum, categoryEnum);
+        } else if (hasSearch && hasDifficulty) {
+            stories = storyRepository.findByStatusAndTitleContainingIgnoreCaseAndDifficulty(
+                    StoryStatus.PUBLISHED, search, difficultyEnum);
+        } else if (hasSearch && hasCategory) {
+            stories = storyRepository.findByStatusAndTitleContainingIgnoreCaseAndCategory(
+                    StoryStatus.PUBLISHED, search, categoryEnum);
+        } else if (hasDifficulty && hasCategory) {
+            stories = storyRepository.findByStatusAndDifficultyAndCategory(
+                    StoryStatus.PUBLISHED, difficultyEnum, categoryEnum);
+        } else if (hasSearch) {
+            stories = storyRepository.findByStatusAndTitleContainingIgnoreCase(StoryStatus.PUBLISHED, search);
+        } else if (hasDifficulty) {
+            stories = storyRepository.findByStatusAndDifficulty(StoryStatus.PUBLISHED, difficultyEnum);
+        } else if (hasCategory) {
+            stories = storyRepository.findByStatusAndCategory(StoryStatus.PUBLISHED, categoryEnum);
+        } else {
+            stories = storyRepository.findByStatus(StoryStatus.PUBLISHED);
+        }
+
+        return stories.stream()
                 .map(s -> mapToResponse(s, userId, false))
                 .collect(Collectors.toList());
-
-        return new StoryPageResponse(
-                stories,
-                storyPage.getNumber(),
-                storyPage.getTotalPages(),
-                storyPage.getTotalElements());
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // ADMIN — GET STORIES (all statuses, paginated)
+    // ADMIN — GET STORIES (all statuses)
     // ─────────────────────────────────────────────────────────────────────────
+    @Transactional(readOnly = true)
+    public List<StoryResponse> getAdminStories(String search, String difficulty, String category, String status) {
 
-    public StoryPageResponse getAdminStories(
-            String search, String difficulty,
-            String category, String status, String sortBy, int page) {
+        DifficultyLevel difficultyEnum = null;
+        if (difficulty != null && !difficulty.isBlank()) {
+            try {
+                difficultyEnum = DifficultyLevel.valueOf(difficulty.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                log.warn("Invalid difficulty value: {}", difficulty);
+            }
+        }
 
-        Pageable pageable = buildPageable(sortBy, page);
+        StoryCategory categoryEnum = null;
+        if (category != null && !category.isBlank()) {
+            try {
+                categoryEnum = StoryCategory.valueOf(category.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                log.warn("Invalid category value: {}", category);
+            }
+        }
 
         StoryStatus statusEnum = null;
         if (status != null && !status.isBlank()) {
-            try { statusEnum = StoryStatus.valueOf(status.toUpperCase()); }
-            catch (IllegalArgumentException ignored) {}
+            try {
+                statusEnum = StoryStatus.valueOf(status.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                log.warn("Invalid status value: {}", status);
+            }
         }
 
-        Page<Story> storyPage = storyRepository.findAdminWithFilters(
-                search, difficulty, category, statusEnum, pageable);
+        List<Story> stories;
+        boolean hasSearch = search != null && !search.isBlank();
+        boolean hasDifficulty = difficultyEnum != null;
+        boolean hasCategory = categoryEnum != null;
+        boolean hasStatus = statusEnum != null;
 
-        List<StoryResponse> stories = storyPage.getContent().stream()
+        if (hasSearch && hasDifficulty && hasCategory && hasStatus) {
+            stories = storyRepository.findByTitleContainingIgnoreCaseAndDifficultyAndCategoryAndStatus(
+                    search, difficultyEnum, categoryEnum, statusEnum);
+        } else if (hasSearch && hasDifficulty && hasCategory) {
+            stories = storyRepository.findByTitleContainingIgnoreCaseAndDifficultyAndCategory(
+                    search, difficultyEnum, categoryEnum);
+        } else if (hasSearch && hasDifficulty && hasStatus) {
+            stories = storyRepository.findByTitleContainingIgnoreCaseAndDifficultyAndStatus(
+                    search, difficultyEnum, statusEnum);
+        } else if (hasSearch && hasCategory && hasStatus) {
+            stories = storyRepository.findByTitleContainingIgnoreCaseAndCategoryAndStatus(
+                    search, categoryEnum, statusEnum);
+        } else if (hasDifficulty && hasCategory && hasStatus) {
+            stories = storyRepository.findByDifficultyAndCategoryAndStatus(
+                    difficultyEnum, categoryEnum, statusEnum);
+        } else if (hasSearch && hasDifficulty) {
+            stories = storyRepository.findByTitleContainingIgnoreCaseAndDifficulty(search, difficultyEnum);
+        } else if (hasSearch && hasCategory) {
+            stories = storyRepository.findByTitleContainingIgnoreCaseAndCategory(search, categoryEnum);
+        } else if (hasSearch && hasStatus) {
+            stories = storyRepository.findByTitleContainingIgnoreCaseAndStatus(search, statusEnum);
+        } else if (hasDifficulty && hasCategory) {
+            stories = storyRepository.findByDifficultyAndCategory(difficultyEnum, categoryEnum);
+        } else if (hasDifficulty && hasStatus) {
+            stories = storyRepository.findByDifficultyAndStatus(difficultyEnum, statusEnum);
+        } else if (hasCategory && hasStatus) {
+            stories = storyRepository.findByCategoryAndStatus(categoryEnum, statusEnum);
+        } else if (hasSearch) {
+            stories = storyRepository.findByTitleContainingIgnoreCase(search);
+        } else if (hasDifficulty) {
+            stories = storyRepository.findByDifficulty(difficultyEnum);
+        } else if (hasCategory) {
+            stories = storyRepository.findByCategory(categoryEnum);
+        } else if (hasStatus) {
+            stories = storyRepository.findByStatus(statusEnum);
+        } else {
+            stories = storyRepository.findAll();
+        }
+
+        return stories.stream()
                 .map(s -> mapToResponse(s, null, true))
                 .collect(Collectors.toList());
-
-        return new StoryPageResponse(
-                stories,
-                storyPage.getNumber(),
-                storyPage.getTotalPages(),
-                storyPage.getTotalElements());
     }
 
     // ─────────────────────────────────────────────────────────────────────────
     // GET SINGLE STORY
     // ─────────────────────────────────────────────────────────────────────────
-
+    @Transactional(readOnly = true)
     public StoryResponse getStory(Long storyId, Long userId, boolean isAdmin) {
         Story story = findById(storyId);
         if (!isAdmin && story.getStatus() != StoryStatus.PUBLISHED) {
@@ -121,8 +204,7 @@ public class StoryService {
                 .authorType(AuthorType.ADMIN)
                 .status(request.status())
                 .createdAt(LocalDateTime.now())
-                .publishedAt(request.status() == StoryStatus.PUBLISHED
-                        ? LocalDateTime.now() : null)
+                .publishedAt(request.status() == StoryStatus.PUBLISHED ? LocalDateTime.now() : null)
                 .build();
 
         story = storyRepository.save(story);
@@ -142,9 +224,7 @@ public class StoryService {
 
         boolean hasPlays = progressRepository.existsByStoryId(storyId);
         if (hasPlays) {
-            throw new BusinessException(
-                    "This story has been played by users. " +
-                            "Please create a new version instead of editing it.");
+            throw new BusinessException("This story has been played by users. Please create a new version instead of editing it.");
         }
 
         if (request.title() != null) story.setTitle(request.title());
@@ -160,7 +240,6 @@ public class StoryService {
             }
         }
         if (request.questions() != null && !request.questions().isEmpty()) {
-            // Remove old questions and replace
             story.getQuestions().clear();
             storyRepository.save(story);
             saveQuestions(story, request.questions());
@@ -178,8 +257,6 @@ public class StoryService {
     @Transactional
     public ApiResponse deleteStory(Long storyId) {
         Story story = findById(storyId);
-        // User progress is preserved — cascade delete won't affect user_question_responses
-        // because we keep progress but just lose the story reference
         storyRepository.delete(story);
         return new ApiResponse(true, "Story deleted successfully.");
     }
@@ -231,7 +308,6 @@ public class StoryService {
             throw new ResourceNotFoundException("Story not found");
         }
 
-        // Get or create progress
         UserStoryProgress progress = progressRepository
                 .findByUserIdAndStoryId(userId, storyId)
                 .orElseGet(() -> {
@@ -252,16 +328,14 @@ public class StoryService {
     // ─────────────────────────────────────────────────────────────────────────
 
     @Transactional
-    public AnswerResultResponse submitAnswer(
-            Long storyId, Long userId, SubmitAnswerRequest request) {
+    public AnswerResultResponse submitAnswer(Long storyId, Long userId, SubmitAnswerRequest request) {
 
         Story story = findById(storyId);
         User user = userRepository.findById(userId).orElseThrow();
 
         UserStoryProgress progress = progressRepository
                 .findByUserIdAndStoryId(userId, storyId)
-                .orElseThrow(() -> new BusinessException(
-                        "Please start the story first"));
+                .orElseThrow(() -> new BusinessException("Please start the story first"));
 
         if (progress.getCompletedStory()) {
             throw new BusinessException("You have already completed this story");
@@ -273,7 +347,6 @@ public class StoryService {
         StoryOption option = optionRepository.findById(request.selectedOptionId())
                 .orElseThrow(() -> new ResourceNotFoundException("Option not found"));
 
-        // Check already answered
         boolean alreadyAnswered = responseRepository
                 .findAllByProgressId(progress.getId())
                 .stream()
@@ -283,16 +356,13 @@ public class StoryService {
             throw new BusinessException("Question already answered");
         }
 
-        // Calculate cash effect
         BigDecimal cashEffect = option.getIsCorrect()
                 ? story.getRewardPerCorrect()
                 : story.getPenaltyPerWrong().negate();
 
-        // Apply to balance
         user.setCashBalance(user.getCashBalance().add(cashEffect));
         userRepository.save(user);
 
-        // Save response
         responseRepository.save(UserQuestionResponse.builder()
                 .progress(progress)
                 .question(question)
@@ -301,9 +371,7 @@ public class StoryService {
                 .answeredAt(LocalDateTime.now())
                 .build());
 
-        // Update progress reward
-        progress.setTotalRewardClaimed(
-                progress.getTotalRewardClaimed().add(cashEffect));
+        progress.setTotalRewardClaimed(progress.getTotalRewardClaimed().add(cashEffect));
         progressRepository.save(progress);
 
         return new AnswerResultResponse(
@@ -339,9 +407,7 @@ public class StoryService {
         progress.setCompletedAt(LocalDateTime.now());
         progressRepository.save(progress);
 
-        // Build answer summary
-        List<UserQuestionResponse> responses =
-                responseRepository.findAllByProgressId(progress.getId());
+        List<UserQuestionResponse> responses = responseRepository.findAllByProgressId(progress.getId());
 
         List<StoryCompletionResponse.AnswerSummary> summaries = responses.stream()
                 .map(r -> new StoryCompletionResponse.AnswerSummary(
@@ -367,9 +433,7 @@ public class StoryService {
         boolean exists = storyRepository.existsByTitleIgnoreCase(title);
         Map<String, Object> result = new HashMap<>();
         result.put("hasSimilar", exists);
-        result.put("message", exists
-                ? "A story with a similar title already exists. Please review before saving."
-                : null);
+        result.put("message", exists ? "A story with a similar title already exists. Please review before saving." : null);
         return result;
     }
 
@@ -390,7 +454,8 @@ public class StoryService {
             - One choice per question must be correct
             - Include clear financial reasoning for each choice
             
-            Respond ONLY with valid JSON in this exact format:
+            Respond ONLY with valid JSON in this exact format. Do not include any text before or after the JSON.
+            
             {
               "title": "Story title here",
               "openingContent": "Brief story context here",
@@ -420,6 +485,30 @@ public class StoryService {
                       "reasoningText": "Explanation why this is wrong"
                     }
                   ]
+                },
+                {
+                  "questionOrder": 2,
+                  "questionText": "Second question text here",
+                  "options": [
+                    {
+                      "optionOrder": 1,
+                      "optionText": "Option text",
+                      "isCorrect": false,
+                      "reasoningText": "Explanation"
+                    },
+                    {
+                      "optionOrder": 2,
+                      "optionText": "Option text",
+                      "isCorrect": true,
+                      "reasoningText": "Explanation"
+                    },
+                    {
+                      "optionOrder": 3,
+                      "optionText": "Option text",
+                      "isCorrect": false,
+                      "reasoningText": "Explanation"
+                    }
+                  ]
                 }
               ]
             }
@@ -431,7 +520,7 @@ public class StoryService {
             OkHttpClient client = new OkHttpClient();
             String requestBody = String.format("""
                 {
-                  "model": "llama3-8b-8192",
+                  "model": "llama-3.1-8b-instant",
                   "messages": [
                     {"role": "user", "content": %s}
                   ],
@@ -444,18 +533,18 @@ public class StoryService {
                     .url("https://api.groq.com/openai/v1/chat/completions")
                     .addHeader("Authorization", "Bearer " + groqApiKey)
                     .addHeader("Content-Type", "application/json")
-                    .post(RequestBody.create(requestBody,
-                            MediaType.get("application/json")))
+                    .post(RequestBody.create(requestBody, MediaType.get("application/json")))
                     .build();
 
             try (Response response = client.newCall(request).execute()) {
                 if (!response.isSuccessful()) {
+                    String errorBody = response.body() != null ? response.body().string() : "Unknown error";
+                    log.error("Groq API error response: {}", errorBody);
                     throw new BusinessException("AI generation failed. Please try again.");
                 }
                 String body = response.body().string();
                 JsonNode node = objectMapper.readTree(body);
-                return node.path("choices").get(0)
-                        .path("message").path("content").asText();
+                return node.path("choices").get(0).path("message").path("content").asText();
             }
         } catch (BusinessException e) {
             throw e;
@@ -465,28 +554,48 @@ public class StoryService {
         }
     }
 
+    private String cleanJsonResponse(String rawResponse) {
+        // Remove markdown code blocks
+        String cleaned = rawResponse.replaceAll("```json\\s*", "")
+                .replaceAll("```\\s*", "")
+                .trim();
+
+        // Find first { and last }
+        int firstBrace = cleaned.indexOf('{');
+        int lastBrace = cleaned.lastIndexOf('}');
+
+        if (firstBrace != -1 && lastBrace != -1 && lastBrace > firstBrace) {
+            return cleaned.substring(firstBrace, lastBrace + 1);
+        }
+
+        return cleaned;
+    }
+
     @Transactional
-    private Story parseAndSaveGroqStory(
-            String json, DifficultyLevel difficulty, StoryCategory category) {
+    private Story parseAndSaveGroqStory(String json, DifficultyLevel difficulty, StoryCategory category) {
         try {
-            // Strip markdown code blocks if present
-            String cleaned = json.trim();
-            if (cleaned.startsWith("```")) {
-                cleaned = cleaned.replaceAll("```json\\n?", "")
-                        .replaceAll("```\\n?", "").trim();
-            }
+            log.info("Raw Groq response: {}", json);
+
+            String cleaned = cleanJsonResponse(json);
+            log.info("Cleaned JSON: {}", cleaned);
 
             JsonNode root = objectMapper.readTree(cleaned);
+
+            // Validate required fields
+            if (!root.has("title") || root.path("title").asText().isEmpty()) {
+                throw new BusinessException("AI response missing required field: title");
+            }
+            if (!root.has("questions") || !root.path("questions").isArray()) {
+                throw new BusinessException("AI response missing required field: questions");
+            }
 
             Story story = Story.builder()
                     .title(root.path("title").asText())
                     .difficulty(difficulty)
                     .category(category)
                     .openingContent(root.path("openingContent").asText())
-                    .rewardPerCorrect(new BigDecimal(
-                            root.path("rewardPerCorrect").asText("100")))
-                    .penaltyPerWrong(new BigDecimal(
-                            root.path("penaltyPerWrong").asText("50")))
+                    .rewardPerCorrect(new BigDecimal(root.path("rewardPerCorrect").asText("100")))
+                    .penaltyPerWrong(new BigDecimal(root.path("penaltyPerWrong").asText("50")))
                     .authorType(AuthorType.AI_GENERATED)
                     .status(StoryStatus.PENDING_REVIEW)
                     .createdAt(LocalDateTime.now())
@@ -498,13 +607,19 @@ public class StoryService {
             List<CreateStoryRequest.QuestionRequest> questionRequests = new ArrayList<>();
 
             for (JsonNode q : questions) {
+                if (!q.has("questionText")) {
+                    continue;
+                }
                 List<CreateStoryRequest.OptionRequest> optionRequests = new ArrayList<>();
-                for (JsonNode o : q.path("options")) {
+                JsonNode options = q.path("options");
+                int optionOrder = 1;
+                for (JsonNode o : options) {
                     optionRequests.add(new CreateStoryRequest.OptionRequest(
                             o.path("optionText").asText(),
-                            o.path("optionOrder").asInt(),
+                            o.path("optionOrder").asInt(optionOrder),
                             o.path("isCorrect").asBoolean(),
                             o.path("reasoningText").asText()));
+                    optionOrder++;
                 }
                 questionRequests.add(new CreateStoryRequest.QuestionRequest(
                         q.path("questionText").asText(),
@@ -515,10 +630,12 @@ public class StoryService {
             saveQuestions(story, questionRequests);
             return story;
 
+        } catch (BusinessException e) {
+            throw e;
         } catch (Exception e) {
             log.error("Failed to parse Groq response: {}", e.getMessage());
-            throw new BusinessException(
-                    "Failed to parse AI response. Please try generating again.");
+            log.error("Raw response was: {}", json);
+            throw new BusinessException("Failed to parse AI response. Please try generating again.");
         }
     }
 
@@ -526,8 +643,7 @@ public class StoryService {
     // HELPERS
     // ─────────────────────────────────────────────────────────────────────────
 
-    private void saveQuestions(
-            Story story, List<CreateStoryRequest.QuestionRequest> questionRequests) {
+    private void saveQuestions(Story story, List<CreateStoryRequest.QuestionRequest> questionRequests) {
         if (questionRequests == null) return;
         for (int i = 0; i < questionRequests.size(); i++) {
             var qReq = questionRequests.get(i);
@@ -558,21 +674,10 @@ public class StoryService {
                 .orElseThrow(() -> new ResourceNotFoundException("Story not found"));
     }
 
-    private Pageable buildPageable(String sortBy, int page) {
-        Sort sort = Sort.by("createdAt").descending();
-        if ("reward".equalsIgnoreCase(sortBy)) {
-            sort = Sort.by("rewardPerCorrect").descending();
-        } else if ("title".equalsIgnoreCase(sortBy)) {
-            sort = Sort.by("title").ascending();
-        }
-        return PageRequest.of(Math.max(0, page), PAGE_SIZE, sort);
-    }
-
     private StoryResponse mapToResponse(Story story, Long userId, boolean isAdmin) {
         String playStatus = null;
         if (userId != null) {
-            Optional<UserStoryProgress> progress =
-                    progressRepository.findByUserIdAndStoryId(userId, story.getId());
+            Optional<UserStoryProgress> progress = progressRepository.findByUserIdAndStoryId(userId, story.getId());
             if (progress.isEmpty()) {
                 playStatus = "PLAY";
             } else if (progress.get().getCompletedStory()) {
@@ -582,28 +687,24 @@ public class StoryService {
             }
         }
 
-        int playedCount = isAdmin
-                ? (int) progressRepository.countByStoryId(story.getId())
-                : 0;
+        int playedCount = isAdmin ? (int) progressRepository.countByStoryId(story.getId()) : 0;
 
-        List<StoryResponse.QuestionResponse> questions =
-                story.getQuestions() == null ? List.of() :
-                        story.getQuestions().stream()
-                                .map(q -> new StoryResponse.QuestionResponse(
-                                        q.getId(),
-                                        q.getQuestionOrder(),
-                                        q.getQuestionText(),
-                                        q.getOptions() == null ? List.of() :
-                                                q.getOptions().stream()
-                                                        .map(o -> new StoryResponse.OptionResponse(
-                                                                o.getId(),
-                                                                o.getOptionOrder(),
-                                                                o.getOptionText(),
-                                                                // Hide correct answer from users during play
-                                                                isAdmin ? o.getIsCorrect() : null,
-                                                                isAdmin ? o.getReasoningText() : null))
-                                                        .collect(Collectors.toList())))
-                                .collect(Collectors.toList());
+        List<StoryResponse.QuestionResponse> questions = story.getQuestions() == null ? List.of() :
+                story.getQuestions().stream()
+                        .map(q -> new StoryResponse.QuestionResponse(
+                                q.getId(),
+                                q.getQuestionOrder(),
+                                q.getQuestionText(),
+                                q.getOptions() == null ? List.of() :
+                                        q.getOptions().stream()
+                                                .map(o -> new StoryResponse.OptionResponse(
+                                                        o.getId(),
+                                                        o.getOptionOrder(),
+                                                        o.getOptionText(),
+                                                        isAdmin ? o.getIsCorrect() : null,
+                                                        isAdmin ? o.getReasoningText() : null))
+                                                .collect(Collectors.toList())))
+                        .collect(Collectors.toList());
 
         return new StoryResponse(
                 story.getId(),

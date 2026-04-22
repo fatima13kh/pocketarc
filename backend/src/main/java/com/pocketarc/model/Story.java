@@ -20,11 +20,11 @@ public class Story {
     private String title;
 
     @Enumerated(EnumType.STRING)
-    @Column(columnDefinition = "difficulty_level", nullable = false)
+    @Column(nullable = false)
     private DifficultyLevel difficulty;
 
     @Enumerated(EnumType.STRING)
-    @Column(columnDefinition = "story_category", nullable = false)
+    @Column(nullable = false)
     private StoryCategory category;
 
     @Column(name = "reward_per_correct", nullable = false, precision = 10, scale = 2)
@@ -37,13 +37,11 @@ public class Story {
     private String openingContent;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "author_type",
-            columnDefinition = "author_type",
-            nullable = false)
+    @Column(name = "author_type", nullable = false)
     private AuthorType authorType;
 
     @Enumerated(EnumType.STRING)
-    @Column(columnDefinition = "story_status", nullable = false)
+    @Column(nullable = false)
     private StoryStatus status;
 
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -52,7 +50,7 @@ public class Story {
     @Column(name = "published_at")
     private LocalDateTime publishedAt;
 
-    @OneToMany(mappedBy = "story", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "story", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @OrderBy("questionOrder ASC")
     private List<StoryQuestion> questions;
 }
