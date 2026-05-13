@@ -4,7 +4,6 @@ import com.pocketarc.dto.request.*;
 import com.pocketarc.dto.response.*;
 import com.pocketarc.security.JwtTokenProvider;
 import com.pocketarc.service.StoryService;
-import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -66,6 +65,15 @@ public class StoryController {
             @PathVariable Long storyId) {
         return ResponseEntity.ok(
                 storyService.completeStory(storyId, extractUserId(auth)));
+    }
+
+    // ✅ UPDATED: Get user's answers with full details (reasoning, option text, correct answer)
+    @GetMapping("/{storyId}/answers")
+    public ResponseEntity<List<UserAnswerResponse>> getUserAnswers(
+            @RequestHeader("Authorization") String auth,
+            @PathVariable Long storyId) {
+        Long userId = extractUserId(auth);
+        return ResponseEntity.ok(storyService.getUserAnswersWithDetails(storyId, userId));
     }
 
     // ── ADMIN ENDPOINTS ───────────────────────────────────────────────────────

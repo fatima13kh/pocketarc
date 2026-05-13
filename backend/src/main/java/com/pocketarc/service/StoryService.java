@@ -189,6 +189,64 @@ public class StoryService {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
+    // GET USER ANSWERS (SIMPLE) - FOR PROGRESS CHECKING
+    // ─────────────────────────────────────────────────────────────────────────
+    @Transactional(readOnly = true)
+    public List<UserAnswerResponse> getUserAnswers(Long storyId, Long userId) {
+        UserStoryProgress progress = progressRepository
+                .findByUserIdAndStoryId(userId, storyId)
+                .orElseThrow(() -> new ResourceNotFoundException("No progress found for this story"));
+
+        List<UserQuestionResponse> responses = responseRepository.findAllByProgressId(progress.getId());
+
+        return responses.stream()
+                .map(r -> new UserAnswerResponse(
+                        r.getQuestion().getId(),
+                        r.getSelectedOption().getId(),
+                        r.getSelectedOption().getIsCorrect()))
+                .collect(Collectors.toList());
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // GET USER ANSWERS WITH FULL DETAILS (for review and resume)
+    // ─────────────────────────────────────────────────────────────────────────
+    @Transactional(readOnly = true)
+    public List<UserAnswerResponse> getUserAnswersWithDetails(Long storyId, Long userId) {
+        UserStoryProgress progress = progressRepository
+                .findByUserIdAndStoryId(userId, storyId)
+                .orElseThrow(() -> new ResourceNotFoundException("No progress found for this story"));
+
+        List<UserQuestionResponse> responses = responseRepository.findAllByProgressId(progress.getId());
+
+        List<UserAnswerResponse> result = new ArrayList<>();
+
+        for (UserQuestionResponse response : responses) {
+            StoryQuestion question = response.getQuestion();
+            StoryOption selectedOption = response.getSelectedOption();
+
+            // Find the correct option for this question
+            StoryOption correctOption = question.getOptions().stream()
+                    .filter(opt -> Boolean.TRUE.equals(opt.getIsCorrect()))
+                    .findFirst()
+                    .orElse(null);
+
+            result.add(new UserAnswerResponse(
+                    question.getId(),
+                    question.getQuestionText(),
+                    selectedOption.getId(),
+                    selectedOption.getOptionText(),
+                    selectedOption.getIsCorrect(),
+                    selectedOption.getReasoningText() != null ? selectedOption.getReasoningText() : "No explanation provided.",
+                    correctOption != null ? correctOption.getId() : null,
+                    correctOption != null ? correctOption.getOptionText() : null,
+                    correctOption != null && correctOption.getReasoningText() != null ? correctOption.getReasoningText() : "No explanation provided."
+            ));
+        }
+
+        return result;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
     // ADMIN — CREATE STORY
     // ─────────────────────────────────────────────────────────────────────────
 
@@ -308,17 +366,25 @@ public class StoryService {
             throw new ResourceNotFoundException("Story not found");
         }
 
+        // Try to find existing progress
         UserStoryProgress progress = progressRepository
                 .findByUserIdAndStoryId(userId, storyId)
-                .orElseGet(() -> {
-                    User user = userRepository.findById(userId).orElseThrow();
-                    return progressRepository.save(UserStoryProgress.builder()
-                            .user(user)
-                            .story(story)
-                            .completedStory(false)
-                            .totalRewardClaimed(BigDecimal.ZERO)
-                            .build());
-                });
+                .orElse(null);
+
+        if (progress == null) {
+            // No progress exists - create new one
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+            progress = UserStoryProgress.builder()
+                    .user(user)
+                    .story(story)
+                    .completedStory(false)
+                    .totalRewardClaimed(BigDecimal.ZERO)
+                    .build();
+
+            progress = progressRepository.save(progress);
+        }
 
         return mapToResponse(story, userId, false);
     }
