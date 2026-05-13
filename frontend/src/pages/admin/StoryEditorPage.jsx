@@ -273,6 +273,18 @@ export default function StoryEditorPage() {
             </div>
           </div>
 
+          {/* ✅ Opening Content / Story Context */}
+          <label className="story-editor-label">Story Context / Opening Content:</label>
+          <textarea
+            className="story-editor-textarea"
+            rows="4"
+            value={form.openingContent}
+            onChange={e => setForm(p => ({ ...p, openingContent: e.target.value }))}
+            placeholder="Example: Meet Emily, a 30-year-old marketing manager who has a yearly income of $80,000. She wants to save $100,000 in 5 years for a down payment on a house."
+            disabled={!!hasPlaysWarning}
+          />
+          
+
           {/* Questions */}
           {form.questions.map((q, qIdx) => (
             <div key={qIdx} className="story-question-block">

@@ -14,7 +14,7 @@ import InvestmentSimulatorPage from './pages/InvestmentSimulatorPage';
 import PortfolioPage from './pages/PortfolioPage';
 import InvestmentStoriesPage from './pages/InvestmentStoriesPage';
 import StoryPlayPage from './pages/StoryPlayPage';
-import AdminStoriesPage from './pages/admin/AdminStoriesPage';
+import StoryViewPage from "./pages/StoryViewPage";
 import StoryEditorPage from './pages/admin/StoryEditorPage';
 import GenerateStoryPage from './pages/admin/GenerateStoryPage';
 
@@ -59,6 +59,7 @@ function AppRoutes() {
       <Route path="/stories/:id/edit" element={<AdminRoute><StoryEditorPage /></AdminRoute>} />
 
       <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="/stories/:id/view" element={<StoryViewPage />} />
     </Routes>
   );
 }

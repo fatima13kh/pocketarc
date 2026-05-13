@@ -13,7 +13,9 @@ export function useStories(isAdmin = false) {
     difficulty: '',
     category: '',
     status: '',
-    sortBy: '',
+    rewardSort: '',
+    titleSort: '',
+    dateSort: '',
     page: 0,
   });
 
@@ -26,11 +28,35 @@ export function useStories(isAdmin = false) {
         : storiesApi.getStories;
       const res = await fn(filters);
       
-      // ✅ FIX: response.data is now the array directly
-      const storiesArray = res.data || [];
+      let storiesArray = res.data || [];
+      
+      // Apply sorting on the frontend
+      storiesArray = [...storiesArray];
+      
+      // Apply Reward sorting
+      if (filters.rewardSort === 'reward_high_to_low') {
+        storiesArray.sort((a, b) => (b.rewardPerCorrect || 0) - (a.rewardPerCorrect || 0));
+      } else if (filters.rewardSort === 'reward_low_to_high') {
+        storiesArray.sort((a, b) => (a.rewardPerCorrect || 0) - (b.rewardPerCorrect || 0));
+      }
+      
+      // Apply Title sorting (overrides previous sort if set)
+      if (filters.titleSort === 'title_atoz') {
+        storiesArray.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+      } else if (filters.titleSort === 'title_ztoa') {
+        storiesArray.sort((a, b) => (b.title || '').localeCompare(a.title || ''));
+      }
+      
+      // Apply Date sorting (overrides previous sort if set)
+      if (filters.dateSort === 'newest_first') {
+        storiesArray.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      } else if (filters.dateSort === 'oldest_first') {
+        storiesArray.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+      }
+      
       setStories(storiesArray);
       setTotalElements(storiesArray.length);
-      setTotalPages(1); // Frontend handles pagination
+      setTotalPages(1);
       
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to load stories');

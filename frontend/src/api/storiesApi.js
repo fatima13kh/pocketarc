@@ -41,4 +41,6 @@ export const storiesApi = {
 
   checkSimilar: (title) =>
     axiosClient.get('/stories/admin/check-similar', { params: { title } }),
+
+  getUserAnswers: (id) => axiosClient.get(`/stories/${id}/answers`),
 };

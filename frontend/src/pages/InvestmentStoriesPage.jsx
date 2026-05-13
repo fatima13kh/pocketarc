@@ -9,11 +9,24 @@ import Spinner from '../components/common/Spinner';
 
 const DIFFICULTIES = ['Easy', 'Medium', 'Hard'];
 const CATEGORIES = ['INVESTING', 'SAVING', 'RETIREMENT', 'DEBT', 'BUSINESS'];
-const SORT_OPTIONS = [
-  { value: '', label: 'Sort By..' },
-  { value: 'reward', label: 'Reward' },
-  { value: 'title', label: 'Title' },
-  { value: 'createdAt', label: 'Newest' },
+
+// Sort options
+const REWARD_SORT = [
+  { value: '', label: 'Sort By Reward' },
+  { value: 'reward_high_to_low', label: 'High to Low' },
+  { value: 'reward_low_to_high', label: 'Low to High' },
+];
+
+const TITLE_SORT = [
+  { value: '', label: 'Sort By Title' },
+  { value: 'title_atoz', label: 'A to Z' },
+  { value: 'title_ztoa', label: 'Z to A' },
+];
+
+const DATE_SORT = [
+  { value: '', label: 'Sort By Date' },
+  { value: 'newest_first', label: 'Newest First' },
+  { value: 'oldest_first', label: 'Oldest First' },
 ];
 
 function Pagination({ currentPage, totalPages, onPageChange }) {
@@ -102,17 +115,30 @@ function StoryCard({ story, onPlay, isAdmin }) {
             </button>
           </div>
         ) : (
-          <button
-            className="btn btn-primary btn-sm"
-            onClick={() => onPlay('play', story.id)}
-            disabled={story.playStatus === 'PLAYED'}
-          >
-            {story.playStatus === 'PLAYED'
-              ? 'Played'
-              : story.playStatus === 'RESUME'
-              ? 'Resume Story'
-              : 'Play Story'}
-          </button>
+          <>
+            {story.playStatus === 'PLAYED' ? (
+              <button
+                className="btn btn-secondary btn-sm"
+                onClick={() => onPlay('view', story.id)}
+              >
+                View Story
+              </button>
+            ) : story.playStatus === 'RESUME' ? (
+              <button
+                className="btn btn-primary btn-sm"
+                onClick={() => onPlay('play', story.id)}
+              >
+                Resume Story
+              </button>
+            ) : (
+              <button
+                className="btn btn-primary btn-sm"
+                onClick={() => onPlay('play', story.id)}
+              >
+                Play Story
+              </button>
+            )}
+          </>
         )}
       </div>
     </div>
@@ -137,9 +163,26 @@ export default function InvestmentStoriesPage() {
     updateFilter('difficulty', val);
   };
 
+  // Handle reward sort change
+  const handleRewardSort = (value) => {
+    updateFilter('rewardSort', value);
+  };
+
+  // Handle title sort change
+  const handleTitleSort = (value) => {
+    updateFilter('titleSort', value);
+  };
+
+  // Handle date sort change
+  const handleDateSort = (value) => {
+    updateFilter('dateSort', value);
+  };
+
   const handleAction = async (action, storyId) => {
     if (action === 'play') {
       navigate(`/stories/${storyId}/play`);
+    } else if (action === 'view') {
+      navigate(`/stories/${storyId}/view`);
     } else if (action === 'edit') {
       navigate(`/stories/${storyId}/edit`);
     } else if (action === 'publish') {
@@ -195,7 +238,7 @@ export default function InvestmentStoriesPage() {
             )}
           </div>
 
-          {/* Filter row */}
+          {/* Filter row - Category */}
           <div className="stories-toolbar-row">
             <select
               className="stories-select"
@@ -209,16 +252,54 @@ export default function InvestmentStoriesPage() {
                 </option>
               ))}
             </select>
+          </div>
 
-            <select
-              className="stories-select"
-              value={filters.sortBy}
-              onChange={e => updateFilter('sortBy', e.target.value)}
-            >
-              {SORT_OPTIONS.map(o => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
-            </select>
+          {/* Sort row - Three separate dropdowns */}
+          <div className="stories-sort-row">
+            <div className="sort-group">
+              <label className="sort-label">Reward:</label>
+              <select
+                className="stories-select stories-select-sm"
+                value={filters.rewardSort || ''}
+                onChange={e => handleRewardSort(e.target.value)}
+              >
+                {REWARD_SORT.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="sort-group">
+              <label className="sort-label">Title:</label>
+              <select
+                className="stories-select stories-select-sm"
+                value={filters.titleSort || ''}
+                onChange={e => handleTitleSort(e.target.value)}
+              >
+                {TITLE_SORT.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="sort-group">
+              <label className="sort-label">Date:</label>
+              <select
+                className="stories-select stories-select-sm"
+                value={filters.dateSort || ''}
+                onChange={e => handleDateSort(e.target.value)}
+              >
+                {DATE_SORT.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {/* Difficulty chips */}
