@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useStories } from '../hooks/useStories';
+import { storiesApi } from '../api/storiesApi';
 import Navbar from '../components/layout/Navbar';
 import PageBanner from '../components/layout/PageBanner';
 import Footer from '../components/layout/Footer';
@@ -9,20 +9,30 @@ import Spinner from '../components/common/Spinner';
 
 const DIFFICULTIES = ['Easy', 'Medium', 'Hard'];
 const CATEGORIES = ['INVESTING', 'SAVING', 'RETIREMENT', 'DEBT', 'BUSINESS'];
+const STORIES_PER_PAGE = 8;
 
-// Sort options
+// Sort options for Reward
 const REWARD_SORT = [
   { value: '', label: 'Sort By Reward' },
   { value: 'reward_high_to_low', label: 'High to Low' },
   { value: 'reward_low_to_high', label: 'Low to High' },
 ];
 
+// Sort options for Deduction (Penalty)
+const DEDUCTION_SORT = [
+  { value: '', label: 'Sort By Deduction' },
+  { value: 'deduction_high_to_low', label: 'High to Low' },
+  { value: 'deduction_low_to_high', label: 'Low to High' },
+];
+
+// Sort options for Title
 const TITLE_SORT = [
   { value: '', label: 'Sort By Title' },
   { value: 'title_atoz', label: 'A to Z' },
   { value: 'title_ztoa', label: 'Z to A' },
 ];
 
+// Sort options for Date
 const DATE_SORT = [
   { value: '', label: 'Sort By Date' },
   { value: 'newest_first', label: 'Newest First' },
@@ -32,32 +42,65 @@ const DATE_SORT = [
 function Pagination({ currentPage, totalPages, onPageChange }) {
   if (totalPages <= 1) return null;
 
-  const pages = [];
-  const showEllipsis = totalPages > 7;
-
-  if (!showEllipsis) {
-    for (let i = 0; i < totalPages; i++) pages.push(i);
-  } else {
-    pages.push(0, 1, 2, 3, 4, 5, 6);
-    if (totalPages > 8) pages.push('...');
-    pages.push(totalPages - 1);
-  }
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisible = 5;
+    
+    if (totalPages <= maxVisible) {
+      for (let i = 0; i < totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      if (currentPage < 3) {
+        for (let i = 0; i < 4; i++) pages.push(i);
+        pages.push('...');
+        pages.push(totalPages - 1);
+      } else if (currentPage > totalPages - 4) {
+        pages.push(0);
+        pages.push('...');
+        for (let i = totalPages - 4; i < totalPages; i++) pages.push(i);
+      } else {
+        pages.push(0);
+        pages.push('...');
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) pages.push(i);
+        pages.push('...');
+        pages.push(totalPages - 1);
+      }
+    }
+    return pages;
+  };
 
   return (
     <div className="pagination">
-      {pages.map((p, i) =>
-        p === '...'
-          ? <span key={i} className="pagination-btn" style={{ border: 'none' }}>...</span>
-          : (
-            <button
-              key={p}
-              className={`pagination-btn ${p === currentPage ? 'active' : ''}`}
-              onClick={() => onPageChange(p)}
-            >
-              {p + 1}
-            </button>
-          )
+      <button
+        className="pagination-btn pagination-arrow"
+        onClick={() => onPageChange(currentPage - 1)}
+        disabled={currentPage === 0}
+      >
+        ← Prev
+      </button>
+      
+      {getPageNumbers().map((p, i) =>
+        p === '...' ? (
+          <span key={i} className="pagination-dots">...</span>
+        ) : (
+          <button
+            key={p}
+            className={`pagination-btn ${p === currentPage ? 'active' : ''}`}
+            onClick={() => onPageChange(p)}
+          >
+            {p + 1}
+          </button>
+        )
       )}
+      
+      <button
+        className="pagination-btn pagination-arrow"
+        onClick={() => onPageChange(currentPage + 1)}
+        disabled={currentPage === totalPages - 1}
+      >
+        Next →
+      </button>
     </div>
   );
 }
@@ -80,6 +123,19 @@ function StoryCard({ story, onPlay, isAdmin }) {
       <p className="story-card-desc">
         {story.openingContent || 'Explore key strategies for the upcoming year. Learn how to navigate market trends and risks.'}
       </p>
+      
+      {/* Reward and Deduction display */}
+      <div className="story-card-reward">
+        <div className="reward-item reward-positive">
+          <span className="reward-label">Reward:</span>
+          <span className="reward-value">+{story.rewardPerCorrect || 0} BHD</span>
+        </div>
+        <div className="reward-item reward-negative">
+          <span className="reward-label">Deduction:</span>
+          <span className="reward-value">-{story.penaltyPerWrong || 0} BHD</span>
+        </div>
+      </div>
+      
       <div className="story-card-footer">
         {isAdmin ? (
           <div className="story-card-actions">
@@ -150,12 +206,109 @@ export default function InvestmentStoriesPage() {
   const { user } = useAuth();
   const isAdmin = user?.isAdmin;
 
-  const {
-    stories, totalPages, loading, error,
-    filters, updateFilter, setPage, refetch,
-  } = useStories(isAdmin);
-
+  const [allStories, setAllStories] = useState([]);
+  const [filteredStories, setFilteredStories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  
+  const [currentPage, setCurrentPage] = useState(0);
+  const [filters, setFilters] = useState({
+    search: '',
+    difficulty: '',
+    category: '',
+    status: '',
+    rewardSort: '',
+    deductionSort: '',
+    titleSort: '',
+    dateSort: '',
+  });
+  
   const [activeDifficulty, setActiveDifficulty] = useState('');
+
+  useEffect(() => {
+    loadStories();
+  }, [isAdmin]);
+
+  useEffect(() => {
+    applyFiltersAndSort();
+  }, [allStories, filters]);
+
+  const loadStories = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const fn = isAdmin ? storiesApi.getAdminStories : storiesApi.getStories;
+      const res = await fn({});
+      setAllStories(res.data || []);
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to load stories');
+      setAllStories([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const applyFiltersAndSort = () => {
+    let result = [...allStories];
+    
+    // Apply search filter
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase();
+      result = result.filter(story => 
+        story.title?.toLowerCase().includes(searchLower)
+      );
+    }
+    
+    // Apply difficulty filter
+    if (filters.difficulty) {
+      result = result.filter(story => story.difficulty === filters.difficulty);
+    }
+    
+    // Apply category filter
+    if (filters.category) {
+      result = result.filter(story => story.category === filters.category);
+    }
+    
+    // Apply status filter (admin only)
+    if (isAdmin && filters.status) {
+      result = result.filter(story => story.status === filters.status);
+    }
+    
+    // Apply Reward sorting
+    if (filters.rewardSort === 'reward_high_to_low') {
+      result.sort((a, b) => (b.rewardPerCorrect || 0) - (a.rewardPerCorrect || 0));
+    } else if (filters.rewardSort === 'reward_low_to_high') {
+      result.sort((a, b) => (a.rewardPerCorrect || 0) - (b.rewardPerCorrect || 0));
+    }
+    
+    // Apply Deduction sorting (overrides previous sort if set)
+    if (filters.deductionSort === 'deduction_high_to_low') {
+      result.sort((a, b) => (b.penaltyPerWrong || 0) - (a.penaltyPerWrong || 0));
+    } else if (filters.deductionSort === 'deduction_low_to_high') {
+      result.sort((a, b) => (a.penaltyPerWrong || 0) - (b.penaltyPerWrong || 0));
+    }
+    
+    // Apply Title sorting (overrides previous sort if set)
+    if (filters.titleSort === 'title_atoz') {
+      result.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+    } else if (filters.titleSort === 'title_ztoa') {
+      result.sort((a, b) => (b.title || '').localeCompare(a.title || ''));
+    }
+    
+    // Apply Date sorting (overrides previous sort if set)
+    if (filters.dateSort === 'newest_first') {
+      result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    } else if (filters.dateSort === 'oldest_first') {
+      result.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+    }
+    
+    setFilteredStories(result);
+    setCurrentPage(0);
+  };
+
+  const updateFilter = (key, value) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+  };
 
   const handleDifficultyFilter = (d) => {
     const val = activeDifficulty === d.toUpperCase() ? '' : d.toUpperCase();
@@ -163,17 +316,18 @@ export default function InvestmentStoriesPage() {
     updateFilter('difficulty', val);
   };
 
-  // Handle reward sort change
   const handleRewardSort = (value) => {
     updateFilter('rewardSort', value);
   };
 
-  // Handle title sort change
+  const handleDeductionSort = (value) => {
+    updateFilter('deductionSort', value);
+  };
+
   const handleTitleSort = (value) => {
     updateFilter('titleSort', value);
   };
 
-  // Handle date sort change
   const handleDateSort = (value) => {
     updateFilter('dateSort', value);
   };
@@ -186,17 +340,35 @@ export default function InvestmentStoriesPage() {
     } else if (action === 'edit') {
       navigate(`/stories/${storyId}/edit`);
     } else if (action === 'publish') {
-      const { storiesApi } = await import('../api/storiesApi');
       await storiesApi.publishStory(storyId);
-      refetch();
+      loadStories();
     } else if (action === 'discard' || action === 'delete') {
       if (window.confirm('Are you sure you want to delete this story?')) {
-        const { storiesApi } = await import('../api/storiesApi');
         await storiesApi.deleteStory(storyId);
-        refetch();
+        loadStories();
       }
     }
   };
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredStories.length / STORIES_PER_PAGE);
+  const paginatedStories = filteredStories.slice(
+    currentPage * STORIES_PER_PAGE,
+    (currentPage + 1) * STORIES_PER_PAGE
+  );
+
+  if (loading) {
+    return (
+      <div className="page-wrapper">
+        <Navbar />
+        <PageBanner title="Investment Stories" />
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '60px' }}>
+          <Spinner dark />
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="page-wrapper">
@@ -254,13 +426,13 @@ export default function InvestmentStoriesPage() {
             </select>
           </div>
 
-          {/* Sort row - Three separate dropdowns */}
+          {/* Sort row - Four separate dropdowns */}
           <div className="stories-sort-row">
             <div className="sort-group">
               <label className="sort-label">Reward:</label>
               <select
                 className="stories-select stories-select-sm"
-                value={filters.rewardSort || ''}
+                value={filters.rewardSort}
                 onChange={e => handleRewardSort(e.target.value)}
               >
                 {REWARD_SORT.map(option => (
@@ -272,10 +444,25 @@ export default function InvestmentStoriesPage() {
             </div>
 
             <div className="sort-group">
+              <label className="sort-label">Deduction:</label>
+              <select
+                className="stories-select stories-select-sm"
+                value={filters.deductionSort}
+                onChange={e => handleDeductionSort(e.target.value)}
+              >
+                {DEDUCTION_SORT.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="sort-group">
               <label className="sort-label">Title:</label>
               <select
                 className="stories-select stories-select-sm"
-                value={filters.titleSort || ''}
+                value={filters.titleSort}
                 onChange={e => handleTitleSort(e.target.value)}
               >
                 {TITLE_SORT.map(option => (
@@ -290,7 +477,7 @@ export default function InvestmentStoriesPage() {
               <label className="sort-label">Date:</label>
               <select
                 className="stories-select stories-select-sm"
-                value={filters.dateSort || ''}
+                value={filters.dateSort}
                 onChange={e => handleDateSort(e.target.value)}
               >
                 {DATE_SORT.map(option => (
@@ -337,34 +524,32 @@ export default function InvestmentStoriesPage() {
         </div>
 
         {/* Stories grid */}
-        {loading ? (
-          <div style={{ display: 'flex', justifyContent: 'center', padding: '60px' }}>
-            <Spinner dark />
-          </div>
-        ) : error ? (
+        {error ? (
           <div className="alert alert-error">{error}</div>
-        ) : stories.length === 0 ? (
+        ) : paginatedStories.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px', color: 'var(--muted)' }}>
             No stories found.
           </div>
         ) : (
-          <div className="stories-grid">
-            {stories.map(story => (
-              <StoryCard
-                key={story.id}
-                story={story}
-                onPlay={handleAction}
-                isAdmin={isAdmin}
-              />
-            ))}
-          </div>
+          <>
+            <div className="stories-grid">
+              {paginatedStories.map(story => (
+                <StoryCard
+                  key={story.id}
+                  story={story}
+                  onPlay={handleAction}
+                  isAdmin={isAdmin}
+                />
+              ))}
+            </div>
+            
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          </>
         )}
-
-        <Pagination
-          currentPage={filters.page}
-          totalPages={totalPages}
-          onPageChange={setPage}
-        />
       </div>
 
       <Footer />

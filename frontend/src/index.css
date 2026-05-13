@@ -1824,3 +1824,102 @@ p { line-height: 1.7; }
     min-width: auto;
   }
 }
+
+/* Reward display styles for story cards */
+.story-card-reward {
+  display: flex;
+  gap: 16px;
+  margin: 8px 0;
+  padding: 8px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.reward-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.reward-label {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.reward-positive .reward-value {
+  color: var(--success);
+  font-weight: 600;
+}
+
+.reward-negative .reward-value {
+  color: var(--error);
+  font-weight: 600;
+}
+
+/* Improved pagination styles */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: 32px;
+  flex-wrap: wrap;
+}
+
+.pagination-btn {
+  min-width: 36px;
+  height: 36px;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: var(--sans);
+}
+
+.pagination-btn:hover:not(:disabled) {
+  border-color: var(--text-h);
+  color: var(--text-h);
+  background: var(--bg);
+}
+
+.pagination-btn.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.pagination-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pagination-arrow {
+  min-width: 70px;
+}
+
+.pagination-dots {
+  padding: 0 4px;
+  color: var(--muted);
+}
+
+/* Responsive pagination */
+@media (max-width: 768px) {
+  .pagination-arrow {
+    min-width: 60px;
+    padding: 0 8px;
+  }
+  
+  .pagination-btn {
+    min-width: 32px;
+    height: 32px;
+    font-size: 12px;
+  }
+}
