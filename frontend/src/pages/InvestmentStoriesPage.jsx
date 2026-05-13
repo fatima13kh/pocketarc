@@ -9,32 +9,34 @@ import Spinner from '../components/common/Spinner';
 
 const DIFFICULTIES = ['Easy', 'Medium', 'Hard'];
 const CATEGORIES = ['INVESTING', 'SAVING', 'RETIREMENT', 'DEBT', 'BUSINESS'];
+const AUTHOR_TYPES = ['AI_GENERATED', 'ADMIN'];
+const PLAYS_STATUS = ['Has Plays', 'No Plays'];
 const STORIES_PER_PAGE = 8;
 
 // Sort options for Reward
 const REWARD_SORT = [
-  { value: '', label: 'Sort By Reward' },
-  { value: 'reward_high_to_low', label: 'High to Low' },
-  { value: 'reward_low_to_high', label: 'Low to High' },
+  { value: '', label: 'Reward (Default)' },
+  { value: 'reward_high_to_low', label: 'Reward: High to Low' },
+  { value: 'reward_low_to_high', label: 'Reward: Low to High' },
 ];
 
 // Sort options for Deduction (Penalty)
 const DEDUCTION_SORT = [
-  { value: '', label: 'Sort By Deduction' },
-  { value: 'deduction_high_to_low', label: 'High to Low' },
-  { value: 'deduction_low_to_high', label: 'Low to High' },
+  { value: '', label: 'Deduction (Default)' },
+  { value: 'deduction_high_to_low', label: 'Deduction: High to Low' },
+  { value: 'deduction_low_to_high', label: 'Deduction: Low to High' },
 ];
 
 // Sort options for Title
 const TITLE_SORT = [
-  { value: '', label: 'Sort By Title' },
-  { value: 'title_atoz', label: 'A to Z' },
-  { value: 'title_ztoa', label: 'Z to A' },
+  { value: '', label: 'Title (Default)' },
+  { value: 'title_atoz', label: 'Title: A to Z' },
+  { value: 'title_ztoa', label: 'Title: Z to A' },
 ];
 
 // Sort options for Date
 const DATE_SORT = [
-  { value: '', label: 'Sort By Date' },
+  { value: '', label: 'Date (Default)' },
   { value: 'newest_first', label: 'Newest First' },
   { value: 'oldest_first', label: 'Oldest First' },
 ];
@@ -105,21 +107,49 @@ function Pagination({ currentPage, totalPages, onPageChange }) {
   );
 }
 
-function StoryCard({ story, onPlay, isAdmin }) {
+function StoryCard({ story, onPlay, onView, isAdmin }) {
   const difficultyLabel = story.difficulty === 'BEGINNER' ? 'Easy'
     : story.difficulty === 'MEDIUM' ? 'Medium' : 'Hard';
 
   const categoryLabel = story.category?.charAt(0) +
     story.category?.slice(1).toLowerCase();
 
+  const authorLabel = story.authorType === 'AI_GENERATED' ? '🤖 AI Generated' : '👨‍💼 Admin Created';
+
+  const handleCardClick = () => {
+    if (isAdmin) {
+      onView(story.id);
+    }
+  };
+
+  // Show played count for admin
+  const hasPlays = (story.playedCount || 0) > 0;
+
   return (
-    <div className="story-card">
+    <div 
+      className={`story-card ${isAdmin ? 'story-card-clickable' : ''}`}
+      onClick={handleCardClick}
+    >
       <div className="story-card-meta">
         <h3 className="story-card-title">{story.title}</h3>
         <span className="story-card-tags">
           {difficultyLabel} | {categoryLabel}
         </span>
       </div>
+      
+      {/* Author type - only visible to admin */}
+      {isAdmin && (
+        <div className="story-card-author">
+          <span className={`author-badge ${story.authorType === 'AI_GENERATED' ? 'author-ai' : 'author-admin'}`}>
+            {authorLabel}
+          </span>
+          {/* Play status badge for admin */}
+          <span className={`plays-badge ${hasPlays ? 'has-plays' : 'no-plays'}`}>
+            {hasPlays ? `📊 Played (${story.playedCount})` : '✨ No Plays'}
+          </span>
+        </div>
+      )}
+      
       <p className="story-card-desc">
         {story.openingContent || 'Explore key strategies for the upcoming year. Learn how to navigate market trends and risks.'}
       </p>
@@ -142,7 +172,10 @@ function StoryCard({ story, onPlay, isAdmin }) {
             {story.status === 'DRAFT' || story.status === 'PENDING_REVIEW' ? (
               <button
                 className="btn btn-primary btn-sm"
-                onClick={() => onPlay('publish', story.id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onPlay('publish', story.id);
+                }}
               >
                 PUBLISH
               </button>
@@ -150,7 +183,10 @@ function StoryCard({ story, onPlay, isAdmin }) {
             {story.status === 'PENDING_REVIEW' ? (
               <button
                 className="btn btn-secondary btn-sm"
-                onClick={() => onPlay('discard', story.id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onPlay('discard', story.id);
+                }}
               >
                 Discard
               </button>
@@ -158,16 +194,24 @@ function StoryCard({ story, onPlay, isAdmin }) {
             {story.status === 'PUBLISHED' ? (
               <button
                 className="btn btn-danger btn-sm"
-                onClick={() => onPlay('delete', story.id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onPlay('delete', story.id);
+                }}
               >
                 DELETE
               </button>
             ) : null}
             <button
               className="btn btn-secondary btn-sm"
-              onClick={() => onPlay('edit', story.id)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onPlay('edit', story.id);
+              }}
+              disabled={hasPlays}
+              title={hasPlays ? "Cannot edit stories that have been played" : "Edit story"}
             >
-              EDIT
+              EDIT {hasPlays && '🔒'}
             </button>
           </div>
         ) : (
@@ -217,6 +261,8 @@ export default function InvestmentStoriesPage() {
     difficulty: '',
     category: '',
     status: '',
+    authorType: '',
+    playsStatus: '',
     rewardSort: '',
     deductionSort: '',
     titleSort: '',
@@ -224,6 +270,8 @@ export default function InvestmentStoriesPage() {
   });
   
   const [activeDifficulty, setActiveDifficulty] = useState('');
+  const [activeAuthorType, setActiveAuthorType] = useState('');
+  const [activePlaysStatus, setActivePlaysStatus] = useState('');
 
   useEffect(() => {
     loadStories();
@@ -274,6 +322,20 @@ export default function InvestmentStoriesPage() {
       result = result.filter(story => story.status === filters.status);
     }
     
+    // Apply author type filter (admin only)
+    if (isAdmin && filters.authorType) {
+      result = result.filter(story => story.authorType === filters.authorType);
+    }
+    
+    // Apply plays status filter (admin only)
+    if (isAdmin && filters.playsStatus) {
+      if (filters.playsStatus === 'Has Plays') {
+        result = result.filter(story => (story.playedCount || 0) > 0);
+      } else if (filters.playsStatus === 'No Plays') {
+        result = result.filter(story => (story.playedCount || 0) === 0);
+      }
+    }
+    
     // Apply Reward sorting
     if (filters.rewardSort === 'reward_high_to_low') {
       result.sort((a, b) => (b.rewardPerCorrect || 0) - (a.rewardPerCorrect || 0));
@@ -281,21 +343,21 @@ export default function InvestmentStoriesPage() {
       result.sort((a, b) => (a.rewardPerCorrect || 0) - (b.rewardPerCorrect || 0));
     }
     
-    // Apply Deduction sorting (overrides previous sort if set)
+    // Apply Deduction sorting
     if (filters.deductionSort === 'deduction_high_to_low') {
       result.sort((a, b) => (b.penaltyPerWrong || 0) - (a.penaltyPerWrong || 0));
     } else if (filters.deductionSort === 'deduction_low_to_high') {
       result.sort((a, b) => (a.penaltyPerWrong || 0) - (b.penaltyPerWrong || 0));
     }
     
-    // Apply Title sorting (overrides previous sort if set)
+    // Apply Title sorting
     if (filters.titleSort === 'title_atoz') {
       result.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
     } else if (filters.titleSort === 'title_ztoa') {
       result.sort((a, b) => (b.title || '').localeCompare(a.title || ''));
     }
     
-    // Apply Date sorting (overrides previous sort if set)
+    // Apply Date sorting
     if (filters.dateSort === 'newest_first') {
       result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     } else if (filters.dateSort === 'oldest_first') {
@@ -314,6 +376,18 @@ export default function InvestmentStoriesPage() {
     const val = activeDifficulty === d.toUpperCase() ? '' : d.toUpperCase();
     setActiveDifficulty(val);
     updateFilter('difficulty', val);
+  };
+
+  const handleAuthorTypeFilter = (type) => {
+    const val = activeAuthorType === type ? '' : type;
+    setActiveAuthorType(val);
+    updateFilter('authorType', val);
+  };
+
+  const handlePlaysStatusFilter = (status) => {
+    const val = activePlaysStatus === status ? '' : status;
+    setActivePlaysStatus(val);
+    updateFilter('playsStatus', val);
   };
 
   const handleRewardSort = (value) => {
@@ -350,7 +424,10 @@ export default function InvestmentStoriesPage() {
     }
   };
 
-  // Pagination logic
+  const handleViewStory = (storyId) => {
+    navigate(`/admin/stories/${storyId}/view`);
+  };
+
   const totalPages = Math.ceil(filteredStories.length / STORIES_PER_PAGE);
   const paginatedStories = filteredStories.slice(
     currentPage * STORIES_PER_PAGE,
@@ -377,7 +454,6 @@ export default function InvestmentStoriesPage() {
 
       <div className="stories-container">
         <div className="stories-toolbar">
-          {/* Top row: search + admin buttons */}
           <div className="stories-toolbar-top">
             <div className="stories-search">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
@@ -410,7 +486,6 @@ export default function InvestmentStoriesPage() {
             )}
           </div>
 
-          {/* Filter row - Category */}
           <div className="stories-toolbar-row">
             <select
               className="stories-select"
@@ -426,7 +501,6 @@ export default function InvestmentStoriesPage() {
             </select>
           </div>
 
-          {/* Sort row - Four separate dropdowns */}
           <div className="stories-sort-row">
             <div className="sort-group">
               <label className="sort-label">Reward:</label>
@@ -489,7 +563,7 @@ export default function InvestmentStoriesPage() {
             </div>
           </div>
 
-          {/* Difficulty chips */}
+          {/* Filter chips */}
           <div className="filter-chips" style={{ marginTop: '12px' }}>
             <div className="filter-chip-group">
               {DIFFICULTIES.map(d => (
@@ -518,12 +592,41 @@ export default function InvestmentStoriesPage() {
                     </button>
                   ))}
                 </div>
+                
+                <div className="filter-divider" />
+                <div className="filter-chip-group">
+                  {AUTHOR_TYPES.map(type => {
+                    const displayLabel = type === 'AI_GENERATED' ? '🤖 AI Generated' : '👨‍💼 Admin';
+                    return (
+                      <button
+                        key={type}
+                        className={`filter-chip ${activeAuthorType === type ? 'active' : ''}`}
+                        onClick={() => handleAuthorTypeFilter(type)}
+                      >
+                        {displayLabel}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Plays Status filter chips - only for admin */}
+                <div className="filter-divider" />
+                <div className="filter-chip-group">
+                  {PLAYS_STATUS.map(status => (
+                    <button
+                      key={status}
+                      className={`filter-chip ${activePlaysStatus === status ? 'active' : ''}`}
+                      onClick={() => handlePlaysStatusFilter(status)}
+                    >
+                      {status === 'Has Plays' ? '📊 Has Plays' : '✨ No Plays'}
+                    </button>
+                  ))}
+                </div>
               </>
             )}
           </div>
         </div>
 
-        {/* Stories grid */}
         {error ? (
           <div className="alert alert-error">{error}</div>
         ) : paginatedStories.length === 0 ? (
@@ -538,6 +641,7 @@ export default function InvestmentStoriesPage() {
                   key={story.id}
                   story={story}
                   onPlay={handleAction}
+                  onView={handleViewStory}
                   isAdmin={isAdmin}
                 />
               ))}

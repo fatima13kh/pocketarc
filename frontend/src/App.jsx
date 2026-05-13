@@ -17,6 +17,7 @@ import StoryPlayPage from './pages/StoryPlayPage';
 import StoryViewPage from "./pages/StoryViewPage";
 import StoryEditorPage from './pages/admin/StoryEditorPage';
 import GenerateStoryPage from './pages/admin/GenerateStoryPage';
+import AdminStoryViewPage from './pages/admin/AdminStoryViewPage';
 
 function PrivateRoute({ children }) {
   const { user } = useAuth();
@@ -57,6 +58,8 @@ function AppRoutes() {
       <Route path="/stories/new" element={<AdminRoute><StoryEditorPage /></AdminRoute>} />
       <Route path="/stories/generate" element={<AdminRoute><GenerateStoryPage /></AdminRoute>} />
       <Route path="/stories/:id/edit" element={<AdminRoute><StoryEditorPage /></AdminRoute>} />
+      <Route path="/admin/stories/:id/view" element={<AdminRoute><AdminStoryViewPage /></AdminRoute>} />
+
 
       <Route path="*" element={<Navigate to="/" replace />} />
       <Route path="/stories/:id/view" element={<StoryViewPage />} />

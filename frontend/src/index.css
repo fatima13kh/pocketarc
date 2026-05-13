@@ -964,7 +964,7 @@ p { line-height: 1.7; }
 .story-context-text {
   margin: 0;
   font-size: 14px;
-  color: #444;
+  color: #000000;
   line-height: 1.5;
 }
 
@@ -1922,4 +1922,165 @@ p { line-height: 1.7; }
     height: 32px;
     font-size: 12px;
   }
+}
+
+/* Author badge styles */
+.story-card-author {
+  margin-top: 4px;
+  margin-bottom: 8px;
+}
+
+.author-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+  font-family: var(--sans);
+}
+
+.author-ai {
+  background: linear-gradient(135deg, #6b6b6b 0%, #c8a96e 100%);
+  color: white;
+}
+
+.author-admin {
+  background: linear-gradient(135deg, #6b6b6b 0%, #c8a96e 100%);
+  color: white;
+}
+
+/* Clickable story card for admin */
+.story-card-clickable {
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.story-card-clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Admin Story View Page Styles */
+.story-editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.story-view-only {
+  margin-top: 20px;
+}
+
+.story-view-field {
+  margin-bottom: 20px;
+}
+
+.story-view-value {
+  font-size: 15px;
+  color: var(--text-h);
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  margin: 0;
+}
+
+.story-view-textarea {
+  padding: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  color: #000000;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.story-view-reward {
+  font-size: 15px;
+  color: var(--success);
+  font-weight: 600;
+  padding: 8px 0;
+  display: inline-block;
+}
+
+.story-view-reward.deduction {
+  color: var(--error);
+}
+
+.story-view-question {
+  background: var(--bg);
+}
+
+.story-view-question-text {
+  font-size: 14px;
+  color: var(--text-h);
+  margin: 8px 0;
+  padding: 8px;
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+}
+
+.story-view-option {
+  padding: 8px;
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  margin-top: 4px;
+}
+
+.story-view-option p {
+  margin: 4px 0;
+  font-size: 13px;
+}
+
+.correct-badge-view {
+  background: var(--success);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-draft {
+  background: rgba(155, 152, 152, 0.2);
+  color: var(--muted);
+}
+
+.status-pending_review {
+  background: rgba(255, 193, 7, 0.2);
+  color: #d4a000;
+}
+
+.status-published {
+  background: rgba(45, 122, 79, 0.2);
+  color: var(--success);
+}
+
+/* Plays status badge styles */
+.plays-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+  font-family: var(--sans);
+  margin-left: 8px;
+}
+
+.has-plays {
+  background: rgba(45, 122, 79, 0.2);
+  color: var(--success);
+}
+
+.no-plays {
+  background: rgba(155, 152, 152, 0.2);
+  color: var(--muted);
 }
