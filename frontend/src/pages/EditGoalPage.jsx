@@ -9,7 +9,6 @@ import Input from '../components/common/Input';
 import Alert from '../components/common/Alert';
 import Spinner from '../components/common/Spinner';
 import { validateGoalForm } from '../validation/goalValidation';
-import { useGoals } from '../context/GoalsContext';
 
 const CATEGORIES = [
   { value: 'EMERGENCY', label: 'Emergency' },
@@ -24,10 +23,19 @@ const CATEGORIES = [
   { value: 'OTHER', label: 'Other' },
 ];
 
+// Helper function to convert file to Base64
+const convertToBase64 = (file) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = (error) => reject(error);
+  });
+};
+
 export default function EditGoalPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { updateGoal, loadGoals } = useGoals();
   
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -38,6 +46,10 @@ export default function EditGoalPage() {
     targetAmount: '',
     category: '',
   });
+  const [coverImage, setCoverImage] = useState(null);
+  const [coverImagePreview, setCoverImagePreview] = useState('');
+  const [currentImageUrl, setCurrentImageUrl] = useState('');
+  const [removeImage, setRemoveImage] = useState(false);
 
   useEffect(() => {
     loadGoal();
@@ -53,11 +65,28 @@ export default function EditGoalPage() {
         targetAmount: goal.targetAmount,
         category: goal.category,
       });
+      setCurrentImageUrl(goal.coverImageUrl || '');
     } catch (err) {
+      console.error('Failed to load goal:', err);
       setApiError(err.response?.data?.error || 'Failed to load goal');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleImageChange = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setCoverImage(file);
+      setCoverImagePreview(URL.createObjectURL(file));
+      setRemoveImage(false);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setCoverImage(null);
+    setCoverImagePreview('');
+    setRemoveImage(true);
   };
 
   const handleChange = (e) => {
@@ -81,20 +110,50 @@ export default function EditGoalPage() {
     setApiError('');
     
     try {
-      // Send the update directly
-      await axiosClient.put(`/goals/${id}`, {
-        name: form.name,
-        targetAmount: parseFloat(form.targetAmount),
-        category: form.category
-      });
+      let coverImageBase64 = null;
       
-      // Refresh goals in context
-      await loadGoals();
+      // If removing image
+      if (removeImage) {
+        // Just send removeImage flag
+        const payload = {
+          name: form.name,
+          targetAmount: parseFloat(form.targetAmount),
+          category: form.category,
+          removeImage: true
+        };
+        
+        console.log('Updating goal (remove image):', payload);
+        await axiosClient.put(`/goals/${id}`, payload);
+      } 
+      // If adding new image
+      else if (coverImage) {
+        coverImageBase64 = await convertToBase64(coverImage);
+        const payload = {
+          name: form.name,
+          targetAmount: parseFloat(form.targetAmount),
+          category: form.category,
+          coverImageBase64: coverImageBase64
+        };
+        
+        console.log('Updating goal (with new image):', payload);
+        await axiosClient.put(`/goals/${id}`, payload);
+      }
+      // No image change
+      else {
+        const payload = {
+          name: form.name,
+          targetAmount: parseFloat(form.targetAmount),
+          category: form.category
+        };
+        
+        console.log('Updating goal (no image change):', payload);
+        await axiosClient.put(`/goals/${id}`, payload);
+      }
       
-      // Navigate back to goals list (not landing page)
-      navigate('/goals');
+      navigate(`/goals/${id}`);
     } catch (err) {
       console.error('Update goal error:', err);
+      console.error('Error response:', err.response?.data);
       setApiError(err.response?.data?.error || 'Failed to update goal');
     } finally {
       setSubmitting(false);
@@ -164,6 +223,43 @@ export default function EditGoalPage() {
               required
               showClear
             />
+
+            <div className="form-group">
+              <label className="form-label">Upload Image (Optional)</label>
+              <div className="image-upload">
+                {currentImageUrl && !removeImage && !coverImagePreview && (
+                  <div className="image-preview current-image">
+                    <img src={currentImageUrl} alt="Current" />
+                    <button type="button" onClick={handleRemoveImage}>
+                      Remove Image
+                    </button>
+                  </div>
+                )}
+                
+                {coverImagePreview && (
+                  <div className="image-preview">
+                    <img src={coverImagePreview} alt="Preview" />
+                    <button type="button" onClick={handleRemoveImage}>
+                      Remove
+                    </button>
+                  </div>
+                )}
+                
+                {!currentImageUrl && !coverImagePreview && (
+                  <label className="upload-btn">
+                    Choose Image
+                    <input type="file" accept="image/*" onChange={handleImageChange} hidden />
+                  </label>
+                )}
+                
+                {currentImageUrl && !removeImage && !coverImagePreview && (
+                  <label className="upload-btn change-image-btn">
+                    Change Image
+                    <input type="file" accept="image/*" onChange={handleImageChange} hidden />
+                  </label>
+                )}
+              </div>
+            </div>
 
             {apiError && <Alert message={apiError} />}
 

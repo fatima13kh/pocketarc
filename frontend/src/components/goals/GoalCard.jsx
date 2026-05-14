@@ -19,20 +19,33 @@ export default function GoalCard({ goal, onClick }) {
 
   return (
     <div className="goal-item" onClick={() => onClick(goal)}>
-      <div className="goal-item-header">
-        <h3>{goal.name}</h3>
-        <span className="goal-category">{categoryLabel}</span>
+      {/* Goal Image */}
+      <div className="goal-card-image">
+        {goal.coverImageUrl ? (
+          <img src={goal.coverImageUrl} alt={goal.name} />
+        ) : (
+          <div className="goal-card-image-placeholder">
+            <span>🎯</span>
+          </div>
+        )}
       </div>
-      <div className="goal-amounts">
-        <span className="current">{goal.currentAmount.toLocaleString()} BHD</span>
-        <span className="separator">/</span>
-        <span className="target">{goal.targetAmount.toLocaleString()} BHD</span>
-      </div>
-      <div className="goal-progress">
-        <div className="progress-bar">
-          <div className="progress-fill" style={{ width: `${Math.min(progress, 100)}%` }} />
+      
+      <div className="goal-card-content">
+        <div className="goal-item-header">
+          <h3>{goal.name}</h3>
+          <span className="goal-category">{categoryLabel}</span>
         </div>
-        <span className="progress-text">{Math.round(progress)}%</span>
+        <div className="goal-amounts">
+          <span className="current">{goal.currentAmount.toLocaleString()} BHD</span>
+          <span className="separator">/</span>
+          <span className="target">{goal.targetAmount.toLocaleString()} BHD</span>
+        </div>
+        <div className="goal-progress">
+          <div className="progress-bar">
+            <div className="progress-fill" style={{ width: `${Math.min(progress, 100)}%` }} />
+          </div>
+          <span className="progress-text">{Math.round(progress)}%</span>
+        </div>
       </div>
     </div>
   );

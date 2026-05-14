@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Routes, Route } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
 import PageBanner from '../components/layout/PageBanner';
 import Footer from '../components/layout/Footer';
@@ -10,6 +10,74 @@ import OverallProgress from '../components/goals/OverallProgress';
 import GoalCard from '../components/goals/GoalCard';
 import GoalFilters from '../components/goals/GoalFilters';
 import { useGoals } from '../context/GoalsContext';
+
+const GOALS_PER_PAGE = 6;
+
+function Pagination({ currentPage, totalPages, onPageChange }) {
+  if (totalPages <= 1) return null;
+
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisible = 5;
+    
+    if (totalPages <= maxVisible) {
+      for (let i = 0; i < totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      if (currentPage < 3) {
+        for (let i = 0; i < 4; i++) pages.push(i);
+        pages.push('...');
+        pages.push(totalPages - 1);
+      } else if (currentPage > totalPages - 4) {
+        pages.push(0);
+        pages.push('...');
+        for (let i = totalPages - 4; i < totalPages; i++) pages.push(i);
+      } else {
+        pages.push(0);
+        pages.push('...');
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) pages.push(i);
+        pages.push('...');
+        pages.push(totalPages - 1);
+      }
+    }
+    return pages;
+  };
+
+  return (
+    <div className="pagination">
+      <button
+        className="pagination-btn pagination-arrow"
+        onClick={() => onPageChange(currentPage - 1)}
+        disabled={currentPage === 0}
+      >
+        ← Prev
+      </button>
+      
+      {getPageNumbers().map((p, i) =>
+        p === '...' ? (
+          <span key={i} className="pagination-dots">...</span>
+        ) : (
+          <button
+            key={p}
+            className={`pagination-btn ${p === currentPage ? 'active' : ''}`}
+            onClick={() => onPageChange(p)}
+          >
+            {p + 1}
+          </button>
+        )
+      )}
+      
+      <button
+        className="pagination-btn pagination-arrow"
+        onClick={() => onPageChange(currentPage + 1)}
+        disabled={currentPage === totalPages - 1}
+      >
+        Next →
+      </button>
+    </div>
+  );
+}
 
 export default function GoalsPage() {
   const navigate = useNavigate();
@@ -29,8 +97,8 @@ export default function GoalsPage() {
   const [dateSort, setDateSort] = useState('');
   const [progressSort, setProgressSort] = useState('');
   const [targetSort, setTargetSort] = useState('');
+  const [currentPage, setCurrentPage] = useState(0);
 
-  // Apply all sorts in priority order (last selected wins)
   const filteredAndSortedGoals = goals
     .filter(goal => {
       const matchesSearch = goal.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -59,6 +127,12 @@ export default function GoalsPage() {
       return 0;
     });
 
+  const totalPages = Math.ceil(filteredAndSortedGoals.length / GOALS_PER_PAGE);
+  const paginatedGoals = filteredAndSortedGoals.slice(
+    currentPage * GOALS_PER_PAGE,
+    (currentPage + 1) * GOALS_PER_PAGE
+  );
+
   const handleViewGoal = (goal) => {
     navigate(`/goals/${goal.id}`);
   };
@@ -69,6 +143,7 @@ export default function GoalsPage() {
       setProgressSort('');
       setTargetSort('');
     }
+    setCurrentPage(0);
   };
 
   const handleProgressSortChange = (value) => {
@@ -77,6 +152,7 @@ export default function GoalsPage() {
       setDateSort('');
       setTargetSort('');
     }
+    setCurrentPage(0);
   };
 
   const handleTargetSortChange = (value) => {
@@ -85,6 +161,17 @@ export default function GoalsPage() {
       setDateSort('');
       setProgressSort('');
     }
+    setCurrentPage(0);
+  };
+
+  const handleSearchChange = (value) => {
+    setSearchTerm(value);
+    setCurrentPage(0);
+  };
+
+  const handleCategoryChange = (value) => {
+    setCategoryFilter(value);
+    setCurrentPage(0);
   };
 
   if (loading) {
@@ -111,9 +198,9 @@ export default function GoalsPage() {
 
         <GoalFilters
           searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
+          onSearchChange={handleSearchChange}
           categoryFilter={categoryFilter}
-          onCategoryChange={setCategoryFilter}
+          onCategoryChange={handleCategoryChange}
           dateSort={dateSort}
           onDateSortChange={handleDateSortChange}
           progressSort={progressSort}
@@ -130,7 +217,7 @@ export default function GoalsPage() {
 
         {error && <Alert message={error} />}
 
-        {filteredAndSortedGoals.length === 0 ? (
+        {paginatedGoals.length === 0 ? (
           <div className="empty-goals">
             <p>No goals found. Create your first savings goal!</p>
             <button className="btn-primary" onClick={() => navigate('/goals/create')}>
@@ -138,11 +225,19 @@ export default function GoalsPage() {
             </button>
           </div>
         ) : (
-          <div className="goals-grid">
-            {filteredAndSortedGoals.map(goal => (
-              <GoalCard key={goal.id} goal={goal} onClick={handleViewGoal} />
-            ))}
-          </div>
+          <>
+            <div className="goals-grid">
+              {paginatedGoals.map(goal => (
+                <GoalCard key={goal.id} goal={goal} onClick={handleViewGoal} />
+              ))}
+            </div>
+            
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          </>
         )}
       </div>
 

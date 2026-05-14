@@ -1,4 +1,3 @@
-// src/context/GoalsContext.jsx
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import axiosClient from '../api/axiosClient';
 
@@ -29,9 +28,7 @@ export function GoalsProvider({ children }) {
 
   const createGoal = useCallback(async (formData) => {
     try {
-      const res = await axiosClient.post('/goals', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      const res = await axiosClient.post('/goals', formData);
       await loadGoals();
       return { success: true, data: res.data };
     } catch (err) {
@@ -51,9 +48,9 @@ export function GoalsProvider({ children }) {
     }
   }, [loadGoals]);
 
-  const updateGoal = useCallback(async (goalId, data) => {
+  const updateGoal = useCallback(async (goalId, formData) => {
     try {
-      const res = await axiosClient.put(`/goals/${goalId}`, data);
+      const res = await axiosClient.put(`/goals/${goalId}`, formData);
       await loadGoals();
       return { success: true, data: res.data };
     } catch (err) {

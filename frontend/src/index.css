@@ -3105,3 +3105,63 @@ p { line-height: 1.7; }
 .create-goal-page .back-button:hover {
   color: var(--text-h);
 }
+
+/* Goal Card Image Styles */
+.goal-card-image {
+  width: 100%;
+  height: 120px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--banner-bg), var(--border));
+  margin-bottom: 12px;
+}
+
+.goal-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.goal-card-image-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+}
+
+.goal-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Change Image Button */
+.change-image-btn {
+  margin-top: 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+.current-image {
+  position: relative;
+}
+
+.current-image img {
+  max-width: 200px;
+  max-height: 150px;
+  border-radius: var(--radius-md);
+  margin-bottom: 8px;
+  border: 1px solid var(--border);
+}
+
+/* Goal Detail Image - Larger size like in your screenshot */
+.goal-detail-image {
+  width: 160px;
+  height: 160px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--bg);
+  flex-shrink: 0;
+}

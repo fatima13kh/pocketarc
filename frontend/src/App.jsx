@@ -51,12 +51,12 @@ function AppRoutes() {
       <Route path="/forgot-password" element={<GuestRoute><ForgotPasswordPage /></GuestRoute>} />
       <Route path="/reset-password" element={<GuestRoute><ResetPasswordPage /></GuestRoute>} />
 
-      {/* Protected User Routes */}
+      {/* Protected User Routes - ORDER MATTERS! Specific paths FIRST */}
       <Route path="/dashboard" element={<PrivateRoute><DashboardPage /></PrivateRoute>} />
-      <Route path="/goals" element={<PrivateRoute><GoalsPage /></PrivateRoute>} />
       <Route path="/goals/create" element={<PrivateRoute><CreateGoalPage /></PrivateRoute>} />
       <Route path="/goals/:id/edit" element={<PrivateRoute><EditGoalPage /></PrivateRoute>} />
       <Route path="/goals/:id" element={<PrivateRoute><GoalDetail /></PrivateRoute>} />
+      <Route path="/goals" element={<PrivateRoute><GoalsPage /></PrivateRoute>} />
       <Route path="/simulator" element={<PrivateRoute><InvestmentSimulatorPage /></PrivateRoute>} />
       <Route path="/portfolio" element={<PrivateRoute><PortfolioPage /></PrivateRoute>} />
       <Route path="/stories" element={<PrivateRoute><InvestmentStoriesPage /></PrivateRoute>} />

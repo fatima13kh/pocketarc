@@ -24,7 +24,7 @@ export default function AddFundsModal({ isOpen, onClose, goal, cashBalance, onAd
     if (success) {
       setAmount('');
       onClose();
-    }
+    } 
     setLoading(false);
   };
 

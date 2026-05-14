@@ -23,9 +23,19 @@ const CATEGORIES = [
   { value: 'OTHER', label: 'Other' },
 ];
 
+// Helper function to convert file to Base64
+const convertToBase64 = (file) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = (error) => reject(error);
+  });
+};
+
 export default function CreateGoalPage() {
   const navigate = useNavigate();
-  const { addFunds, cashBalance, loadGoals } = useGoals();
+  const { addFunds, cashBalance } = useGoals();
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [apiError, setApiError] = useState('');
@@ -78,8 +88,11 @@ export default function CreateGoalPage() {
   const handleCreateGoal = async (e) => {
     e.preventDefault();
     
+    console.log('=== STARTING CREATE GOAL ===');
+    
     const validationErrors = validateGoalForm(form);
     if (Object.keys(validationErrors).length > 0) {
+      console.log('Validation errors:', validationErrors);
       setErrors(validationErrors);
       return;
     }
@@ -88,39 +101,48 @@ export default function CreateGoalPage() {
     setApiError('');
     
     try {
-      // Always use FormData for consistency
-      const formData = new FormData();
-      formData.append('name', form.name);
-      formData.append('targetAmount', form.targetAmount);
-      formData.append('category', form.category);
+      let coverImageBase64 = null;
       if (form.coverImage) {
-        formData.append('coverImage', form.coverImage);
+        console.log('Converting image to Base64...');
+        coverImageBase64 = await convertToBase64(form.coverImage);
+        console.log('Image converted, length:', coverImageBase64.length);
       }
       
-      console.log('Creating goal with data:', {
+      const payload = {
         name: form.name,
-        targetAmount: form.targetAmount,
+        targetAmount: parseFloat(form.targetAmount),
         category: form.category,
-        hasImage: !!form.coverImage
-      });
+        coverImageBase64: coverImageBase64
+      };
       
-      const response = await axiosClient.post('/goals', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
+      // LOG THE PAYLOAD
+      console.log('=== SENDING PAYLOAD ===');
+      console.log('URL:', '/api/goals');
+      console.log('Name:', payload.name);
+      console.log('Target Amount:', payload.targetAmount);
+      console.log('Category:', payload.category);
+      console.log('Has Image:', !!payload.coverImageBase64);
+      console.log('Image length:', payload.coverImageBase64 ? payload.coverImageBase64.length : 0);
       
-      console.log('Goal created:', response.data);
+      const response = await axiosClient.post('/goals', payload);
+      
+      console.log('=== RESPONSE SUCCESS ===');
+      console.log('Status:', response.status);
+      console.log('Data:', response.data);
       
       setCreatedGoalId(response.data.id);
       setCreatedGoalName(response.data.name);
       setShowAddFundsModal(true);
     } catch (err) {
-      console.error('Create goal error:', err);
-      console.error('Error response:', err.response?.data);
+      console.error('=== ERROR RESPONSE ===');
+      console.error('Status:', err.response?.status);
+      console.error('Error data:', err.response?.data);
+      console.error('Error message:', err.message);
+      console.error('Full error:', err);
       setApiError(err.response?.data?.error || err.response?.data?.message || 'Failed to create goal');
     } finally {
       setLoading(false);
+      console.log('=== CREATE GOAL FINISHED ===');
     }
   };
 
@@ -138,14 +160,17 @@ export default function CreateGoalPage() {
     setAddingFunds(true);
     setApiError('');
     
-    const result = await addFunds(createdGoalId, amount);
-    if (result.success) {
+    try {
+      await axiosClient.post(`/goals/${createdGoalId}/add-funds`, null, {
+        params: { amount }
+      });
       setShowAddFundsModal(false);
       navigate('/goals');
-    } else {
-      setApiError(result.error);
+    } catch (err) {
+      setApiError(err.response?.data?.error || 'Failed to add funds');
+    } finally {
+      setAddingFunds(false);
     }
-    setAddingFunds(false);
   };
 
   const handleSkipAddFunds = () => {
