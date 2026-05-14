@@ -9,11 +9,13 @@ import Footer from '../../components/layout/Footer';
 
 const DIFFICULTIES = ['BEGINNER', 'MEDIUM', 'HARD'];
 const CATEGORIES = ['INVESTING', 'SAVING', 'RETIREMENT', 'DEBT', 'BUSINESS'];
+const QUESTION_COUNTS = [1, 2, 3, 4, 5];
 
 export default function GenerateStoryPage() {
   const navigate = useNavigate();
   const [difficulty, setDifficulty] = useState('');
   const [category, setCategory] = useState('');
+  const [numberOfQuestions, setNumberOfQuestions] = useState(2);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -24,7 +26,11 @@ export default function GenerateStoryPage() {
     setLoading(true);
     setError('');
     try {
-      await storiesApi.generateStory({ difficulty, category });
+      await storiesApi.generateStory({ 
+        difficulty, 
+        category,
+        numberOfQuestions 
+      });
       navigate('/admin/stories');
     } catch (err) {
       setError(err.response?.data?.error || 'Generation failed. Please try again.');
@@ -36,51 +42,80 @@ export default function GenerateStoryPage() {
   return (
     <div className="page-wrapper">
       <Navbar />
-      <PageBanner title="Investment Stories" />
+      <PageBanner title="Generate Story" />
 
       <div style={{
         flex: 1, display: 'flex',
         alignItems: 'center', justifyContent: 'center', padding: '48px 24px',
       }}>
         <div className="generate-modal" style={{ position: 'static', background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-          <h2 className="generate-modal-title">Generate Stories</h2>
+          <div className="generate-modal-header">
+            <button className="generate-back-btn" onClick={() => navigate('/admin/stories')}>
+              ← Back to Stories
+            </button>
+          </div>
+
+          <h2 className="generate-modal-title">Generate AI Story</h2>
 
           <Alert message={error} />
 
           {/* Difficulty chips */}
-          <div className="filter-chips" style={{ justifyContent: 'center', marginBottom: '24px' }}>
-            {DIFFICULTIES.map(d => (
-              <button
-                key={d}
-                className={`filter-chip ${difficulty === d ? 'active' : ''}`}
-                onClick={() => setDifficulty(d)}
-              >
-                {d.charAt(0) + d.slice(1).toLowerCase()}
-              </button>
-            ))}
+          <div className="generate-section">
+            <label className="generate-label">Select Difficulty:</label>
+            <div className="filter-chips" style={{ justifyContent: 'center', marginBottom: '24px' }}>
+              {DIFFICULTIES.map(d => (
+                <button
+                  key={d}
+                  className={`filter-chip ${difficulty === d ? 'active' : ''}`}
+                  onClick={() => setDifficulty(d)}
+                >
+                  {d.charAt(0) + d.slice(1).toLowerCase()}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Category */}
-          <label className="story-editor-label" style={{ textAlign: 'center', display: 'block', marginBottom: '8px' }}>
-            Choose Category
-          </label>
-          <select
-            className="stories-select"
-            style={{ width: '100%', marginBottom: '28px' }}
-            value={category}
-            onChange={e => setCategory(e.target.value)}
-          >
-            <option value="">Choose a category..</option>
-            {CATEGORIES.map(c => (
-              <option key={c} value={c}>
-                {c.charAt(0) + c.slice(1).toLowerCase()}
-              </option>
-            ))}
-          </select>
+          <div className="generate-section">
+            <label className="generate-label">Choose Category:</label>
+            <select
+              className="stories-select"
+              style={{ width: '100%', marginBottom: '24px' }}
+              value={category}
+              onChange={e => setCategory(e.target.value)}
+            >
+              <option value="">Choose a category..</option>
+              {CATEGORIES.map(c => (
+                <option key={c} value={c}>
+                  {c.charAt(0) + c.slice(1).toLowerCase()}
+                </option>
+              ))}
+            </select>
+          </div>
 
-          <div style={{ display: 'flex', justifyContent: 'center' }}>
+          {/* Number of Questions - Buttons only, no slider */}
+          <div className="generate-section">
+            <label className="generate-label">Number of Questions:</label>
+            <div className="question-count-buttons" style={{ justifyContent: 'center', marginBottom: '16px' }}>
+              {QUESTION_COUNTS.map(num => (
+                <button
+                  key={num}
+                  className={`question-count-btn ${numberOfQuestions === num ? 'active' : ''}`}
+                  onClick={() => setNumberOfQuestions(num)}
+                >
+                  {num}
+                </button>
+              ))}
+            </div>
+            <p className="question-count-value" style={{ textAlign: 'center' }}>
+              {numberOfQuestions} {numberOfQuestions === 1 ? 'question' : 'questions'} will be generated
+            </p>
+          </div>
+
+          {/* Generate Button */}
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '24px' }}>
             <Button loading={loading} onClick={handleGenerate}>
-              Generate
+              Generate Story
             </Button>
           </div>
         </div>

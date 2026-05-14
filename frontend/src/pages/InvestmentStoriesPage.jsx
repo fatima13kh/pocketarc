@@ -15,28 +15,28 @@ const STORIES_PER_PAGE = 8;
 
 // Sort options for Reward
 const REWARD_SORT = [
-  { value: '', label: 'Reward (Default)' },
-  { value: 'reward_high_to_low', label: 'Reward: High to Low' },
-  { value: 'reward_low_to_high', label: 'Reward: Low to High' },
+  { value: '', label: 'Sort By Reward' },
+  { value: 'reward_high_to_low', label: 'High to Low' },
+  { value: 'reward_low_to_high', label: 'Low to High' },
 ];
 
 // Sort options for Deduction (Penalty)
 const DEDUCTION_SORT = [
-  { value: '', label: 'Deduction (Default)' },
-  { value: 'deduction_high_to_low', label: 'Deduction: High to Low' },
-  { value: 'deduction_low_to_high', label: 'Deduction: Low to High' },
+  { value: '', label: 'Sort By Deduction' },
+  { value: 'deduction_high_to_low', label: 'High to Low' },
+  { value: 'deduction_low_to_high', label: 'Low to High' },
 ];
 
 // Sort options for Title
 const TITLE_SORT = [
-  { value: '', label: 'Title (Default)' },
-  { value: 'title_atoz', label: 'Title: A to Z' },
-  { value: 'title_ztoa', label: 'Title: Z to A' },
+  { value: '', label: 'Sort By Title' },
+  { value: 'title_atoz', label: 'A to Z' },
+  { value: 'title_ztoa', label: 'Z to A' },
 ];
 
 // Sort options for Date
 const DATE_SORT = [
-  { value: '', label: 'Date (Default)' },
+  { value: '', label: 'Sort By Date' },
   { value: 'newest_first', label: 'Newest First' },
   { value: 'oldest_first', label: 'Oldest First' },
 ];
