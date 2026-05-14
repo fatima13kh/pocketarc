@@ -1,6 +1,5 @@
 package com.pocketarc.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pocketarc.dto.request.*;
 import com.pocketarc.dto.response.*;
@@ -10,8 +9,6 @@ import com.pocketarc.model.enums.*;
 import com.pocketarc.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.*;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,9 +28,7 @@ public class StoryService {
     private final UserStoryProgressRepository progressRepository;
     private final UserQuestionResponseRepository responseRepository;
     private final UserRepository             userRepository;
-
-    @Value("${groq.api-key}")
-    private String groqApiKey;
+    private final GroqAiService              groqAiService;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -343,14 +338,12 @@ public class StoryService {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // ADMIN — GENERATE STORY VIA GROQ AI
+    // ADMIN — GENERATE STORY VIA GROQ AI (delegated to GroqAiService)
     // ─────────────────────────────────────────────────────────────────────────
 
     @Transactional
     public StoryResponse generateStory(GenerateStoryRequest request) {
-        String prompt = buildGroqPrompt(request.difficulty(), request.category());
-        String groqResponse = callGroqApi(prompt);
-        Story story = parseAndSaveGroqStory(groqResponse, request.difficulty(), request.category());
+        Story story = groqAiService.generateStory(request);
         Story saved = storyRepository.findById(story.getId()).orElseThrow();
         return mapToResponse(saved, null, true);
     }
@@ -504,205 +497,11 @@ public class StoryService {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // GROQ INTEGRATION
+    // PUBLIC METHOD FOR GroqAiService TO SAVE QUESTIONS
     // ─────────────────────────────────────────────────────────────────────────
 
-    private String buildGroqPrompt(DifficultyLevel difficulty, StoryCategory category) {
-        return String.format("""
-            You are a financial literacy expert. Create an investment story for educational purposes.
-            
-            Requirements:
-            - Difficulty: %s
-            - Category: %s
-            - The story must be realistic, educational and professionally written
-            - Include exactly 2 questions per story
-            - Each question must have exactly 3 choices
-            - One choice per question must be correct
-            - Include clear financial reasoning for each choice
-            
-            Respond ONLY with valid JSON in this exact format. Do not include any text before or after the JSON.
-            
-            {
-              "title": "Story title here",
-              "openingContent": "Brief story context here",
-              "rewardPerCorrect": 200,
-              "penaltyPerWrong": 100,
-              "questions": [
-                {
-                  "questionOrder": 1,
-                  "questionText": "Question text here",
-                  "options": [
-                    {
-                      "optionOrder": 1,
-                      "optionText": "Option text",
-                      "isCorrect": false,
-                      "reasoningText": "Explanation why this is wrong or right"
-                    },
-                    {
-                      "optionOrder": 2,
-                      "optionText": "Option text",
-                      "isCorrect": true,
-                      "reasoningText": "Explanation why this is correct"
-                    },
-                    {
-                      "optionOrder": 3,
-                      "optionText": "Option text",
-                      "isCorrect": false,
-                      "reasoningText": "Explanation why this is wrong"
-                    }
-                  ]
-                },
-                {
-                  "questionOrder": 2,
-                  "questionText": "Second question text here",
-                  "options": [
-                    {
-                      "optionOrder": 1,
-                      "optionText": "Option text",
-                      "isCorrect": false,
-                      "reasoningText": "Explanation"
-                    },
-                    {
-                      "optionOrder": 2,
-                      "optionText": "Option text",
-                      "isCorrect": true,
-                      "reasoningText": "Explanation"
-                    },
-                    {
-                      "optionOrder": 3,
-                      "optionText": "Option text",
-                      "isCorrect": false,
-                      "reasoningText": "Explanation"
-                    }
-                  ]
-                }
-              ]
-            }
-            """, difficulty.name(), category.name());
-    }
-
-    private String callGroqApi(String prompt) {
-        try {
-            OkHttpClient client = new OkHttpClient();
-            String requestBody = String.format("""
-                {
-                  "model": "llama-3.1-8b-instant",
-                  "messages": [
-                    {"role": "user", "content": %s}
-                  ],
-                  "temperature": 0.7,
-                  "max_tokens": 2000
-                }
-                """, objectMapper.writeValueAsString(prompt));
-
-            Request request = new Request.Builder()
-                    .url("https://api.groq.com/openai/v1/chat/completions")
-                    .addHeader("Authorization", "Bearer " + groqApiKey)
-                    .addHeader("Content-Type", "application/json")
-                    .post(RequestBody.create(requestBody, MediaType.get("application/json")))
-                    .build();
-
-            try (Response response = client.newCall(request).execute()) {
-                if (!response.isSuccessful()) {
-                    String errorBody = response.body() != null ? response.body().string() : "Unknown error";
-                    log.error("Groq API error response: {}", errorBody);
-                    throw new BusinessException("AI generation failed. Please try again.");
-                }
-                String body = response.body().string();
-                JsonNode node = objectMapper.readTree(body);
-                return node.path("choices").get(0).path("message").path("content").asText();
-            }
-        } catch (BusinessException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Groq API error: {}", e.getMessage());
-            throw new BusinessException("AI generation failed. Please try again.");
-        }
-    }
-
-    private String cleanJsonResponse(String rawResponse) {
-        // Remove markdown code blocks
-        String cleaned = rawResponse.replaceAll("```json\\s*", "")
-                .replaceAll("```\\s*", "")
-                .trim();
-
-        // Find first { and last }
-        int firstBrace = cleaned.indexOf('{');
-        int lastBrace = cleaned.lastIndexOf('}');
-
-        if (firstBrace != -1 && lastBrace != -1 && lastBrace > firstBrace) {
-            return cleaned.substring(firstBrace, lastBrace + 1);
-        }
-
-        return cleaned;
-    }
-
-    @Transactional
-    private Story parseAndSaveGroqStory(String json, DifficultyLevel difficulty, StoryCategory category) {
-        try {
-            log.info("Raw Groq response: {}", json);
-
-            String cleaned = cleanJsonResponse(json);
-            log.info("Cleaned JSON: {}", cleaned);
-
-            JsonNode root = objectMapper.readTree(cleaned);
-
-            // Validate required fields
-            if (!root.has("title") || root.path("title").asText().isEmpty()) {
-                throw new BusinessException("AI response missing required field: title");
-            }
-            if (!root.has("questions") || !root.path("questions").isArray()) {
-                throw new BusinessException("AI response missing required field: questions");
-            }
-
-            Story story = Story.builder()
-                    .title(root.path("title").asText())
-                    .difficulty(difficulty)
-                    .category(category)
-                    .openingContent(root.path("openingContent").asText())
-                    .rewardPerCorrect(new BigDecimal(root.path("rewardPerCorrect").asText("100")))
-                    .penaltyPerWrong(new BigDecimal(root.path("penaltyPerWrong").asText("50")))
-                    .authorType(AuthorType.AI_GENERATED)
-                    .status(StoryStatus.PENDING_REVIEW)
-                    .createdAt(LocalDateTime.now())
-                    .build();
-
-            story = storyRepository.save(story);
-
-            JsonNode questions = root.path("questions");
-            List<CreateStoryRequest.QuestionRequest> questionRequests = new ArrayList<>();
-
-            for (JsonNode q : questions) {
-                if (!q.has("questionText")) {
-                    continue;
-                }
-                List<CreateStoryRequest.OptionRequest> optionRequests = new ArrayList<>();
-                JsonNode options = q.path("options");
-                int optionOrder = 1;
-                for (JsonNode o : options) {
-                    optionRequests.add(new CreateStoryRequest.OptionRequest(
-                            o.path("optionText").asText(),
-                            o.path("optionOrder").asInt(optionOrder),
-                            o.path("isCorrect").asBoolean(),
-                            o.path("reasoningText").asText()));
-                    optionOrder++;
-                }
-                questionRequests.add(new CreateStoryRequest.QuestionRequest(
-                        q.path("questionText").asText(),
-                        q.path("questionOrder").asInt(),
-                        optionRequests));
-            }
-
-            saveQuestions(story, questionRequests);
-            return story;
-
-        } catch (BusinessException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Failed to parse Groq response: {}", e.getMessage());
-            log.error("Raw response was: {}", json);
-            throw new BusinessException("Failed to parse AI response. Please try generating again.");
-        }
+    public void saveQuestionsToStory(Story story, List<CreateStoryRequest.QuestionRequest> questionRequests) {
+        saveQuestions(story, questionRequests);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
