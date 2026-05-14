@@ -2,7 +2,6 @@ package com.pocketarc.dto.request;
 
 import lombok.Builder;
 import lombok.Data;
-import org.springframework.web.multipart.MultipartFile;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -24,5 +23,5 @@ public class CreateGoalRequest {
     @NotBlank(message = "Category is required")
     private String category;
 
-    private MultipartFile coverImage;
+    private String coverImageBase64;
 }

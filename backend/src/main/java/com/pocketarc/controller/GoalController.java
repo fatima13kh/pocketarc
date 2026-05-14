@@ -8,10 +8,8 @@ import com.pocketarc.service.GoalService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -44,34 +42,39 @@ public class GoalController {
         return ResponseEntity.ok(goalService.getGoal(goalId, userId));
     }
 
-    @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.APPLICATION_JSON_VALUE})
+    // Accept JSON with Base64 image
+    @PostMapping
     public ResponseEntity<GoalResponse> createGoal(
             @RequestHeader("Authorization") String authHeader,
-            @RequestParam(value = "name", required = false) String name,
-            @RequestParam(value = "targetAmount", required = false) BigDecimal targetAmount,
-            @RequestParam(value = "category", required = false) String category,
-            @RequestParam(value = "coverImage", required = false) MultipartFile coverImage) {
-
+            @Valid @RequestBody CreateGoalRequest request) {
+        try {
+            System.out.println("=== CREATE GOAL REQUEST ===");
+            System.out.println("Name: " + request.getName());
+            System.out.println("Target Amount: " + request.getTargetAmount());
+            System.out.println("Category: " + request.getCategory());
+            System.out.println("Has Base64 Image: " + (request.getCoverImageBase64() != null));
         Long userId = extractUserId(authHeader);
-
-        CreateGoalRequest request = CreateGoalRequest.builder()
-                .name(name)
-                .targetAmount(targetAmount)
-                .category(category)
-                .coverImage(coverImage)
-                .build();
 
         GoalResponse response = goalService.createGoal(userId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (Exception e) {
+            System.err.println("=== ERROR CREATING GOAL ===");
+            e.printStackTrace(); // This will print the full stack trace
+            throw e;
+        }
     }
 
+    // Accept JSON with Base64 image for update
     @PutMapping("/{goalId}")
     public ResponseEntity<GoalResponse> updateGoal(
             @RequestHeader("Authorization") String authHeader,
             @PathVariable Long goalId,
             @Valid @RequestBody UpdateGoalRequest request) {
+
         Long userId = extractUserId(authHeader);
-        return ResponseEntity.ok(goalService.updateGoal(goalId, userId, request));
+
+        GoalResponse response = goalService.updateGoal(goalId, userId, request);
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{goalId}")

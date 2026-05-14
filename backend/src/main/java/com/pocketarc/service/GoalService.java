@@ -21,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -67,10 +68,10 @@ public class GoalService {
             throw new BusinessException("Invalid category. Please select a valid category.");
         }
 
-        // Upload image to Cloudinary if provided
+        // Handle Base64 image if provided
         String imageUrl = null;
-        if (request.getCoverImage() != null && !request.getCoverImage().isEmpty()) {
-            imageUrl = uploadImage(request.getCoverImage());
+        if (request.getCoverImageBase64() != null && !request.getCoverImageBase64().isEmpty()) {
+            imageUrl = saveBase64Image(request.getCoverImageBase64());
         }
 
         SavingsGoal goal = SavingsGoal.builder()
@@ -96,10 +97,12 @@ public class GoalService {
             throw new BusinessException("You don't have permission to update this goal");
         }
 
+        // Update name
         if (request.getName() != null && !request.getName().isBlank()) {
             goal.setName(request.getName());
         }
 
+        // Update target amount
         if (request.getTargetAmount() != null && request.getTargetAmount().compareTo(BigDecimal.ZERO) > 0) {
             if (request.getTargetAmount().compareTo(goal.getCurrentAmount()) < 0) {
                 throw new BusinessException("Target amount cannot be less than current saved amount");
@@ -107,6 +110,7 @@ public class GoalService {
             goal.setTargetAmount(request.getTargetAmount());
         }
 
+        // Update category
         if (request.getCategory() != null && !request.getCategory().isBlank()) {
             try {
                 GoalCategory category = GoalCategory.valueOf(request.getCategory().toUpperCase());
@@ -114,6 +118,16 @@ public class GoalService {
             } catch (IllegalArgumentException e) {
                 throw new BusinessException("Invalid category");
             }
+        }
+
+        // Handle image update or removal
+        if (request.getRemoveImage() != null && request.getRemoveImage()) {
+            goal.setCoverImageUrl(null);
+            log.info("Removed image for goal: {}", goalId);
+        } else if (request.getCoverImageBase64() != null && !request.getCoverImageBase64().isEmpty()) {
+            String imageUrl = saveBase64Image(request.getCoverImageBase64());
+            goal.setCoverImageUrl(imageUrl);
+            log.info("Updated image for goal: {}", goalId);
         }
 
         goal.setUpdatedAt(LocalDateTime.now());
@@ -208,19 +222,35 @@ public class GoalService {
         return mapToResponse(goal);
     }
 
-    private String uploadImage(MultipartFile file) {
+    private String saveBase64Image(String base64String) {
+        if (base64String == null || base64String.isEmpty()) {
+            return null;
+        }
+
         try {
+
+            System.out.println("=== SAVING BASE64 IMAGE ===");
+            System.out.println("Base64 string length: " + base64String.length());
+            // Remove data:image/png;base64, prefix if present
+            String[] parts = base64String.split(",");
+            String imageData = parts.length > 1 ? parts[1] : parts[0];
+
+            System.out.println("Image data length after split: " + imageData.length());
+
+            byte[] imageBytes = Base64.getDecoder().decode(imageData);
+
+            // Upload to Cloudinary
             Map<?, ?> uploadResult = cloudinary.uploader().upload(
-                    file.getBytes(),
+                    imageBytes,
                     ObjectUtils.asMap(
                             "folder", "savings_goals",
                             "allowed_formats", List.of("jpg", "jpeg", "png", "webp")
                     )
             );
             return uploadResult.get("secure_url").toString();
-        } catch (IOException e) {
-            log.error("Failed to upload image to Cloudinary: {}", e.getMessage());
-            throw new BusinessException("Failed to upload image. Please try again.");
+        } catch (Exception e) {
+            log.error("Failed to upload base64 image: {}", e.getMessage());
+            return null;
         }
     }
 
