@@ -1,5 +1,3 @@
-// src/validation/goalValidation.js
-
 export const validateGoalName = (name) => {
   if (!name || !name.trim()) {
     return 'Goal name is required';
@@ -53,6 +51,23 @@ export const validateAddFunds = (amount, cashBalance, remainingToGoal) => {
   }
   if (remainingToGoal !== undefined && numAmount > remainingToGoal) {
     return `You only need ${remainingToGoal.toLocaleString()} BHD to reach your goal`;
+  }
+  return null;
+};
+
+export const validateWithdrawFunds = (amount, availableAmount) => {
+  const numAmount = parseFloat(amount);
+  if (!amount) {
+    return 'Amount is required';
+  }
+  if (isNaN(numAmount)) {
+    return 'Please enter a valid number';
+  }
+  if (numAmount <= 0) {
+    return 'Amount must be greater than 0';
+  }
+  if (numAmount > availableAmount) {
+    return `Cannot withdraw more than ${availableAmount.toLocaleString()} BHD from this goal`;
   }
   return null;
 };

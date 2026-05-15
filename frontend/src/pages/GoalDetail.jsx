@@ -9,6 +9,7 @@ import Alert from '../components/common/Alert';
 import Spinner from '../components/common/Spinner';
 import { validateAddFunds } from '../validation/goalValidation';
 import { useGoals } from '../context/GoalsContext';
+import GoalProjection from '../components/goals/GoalProjection'; // ADD THIS IMPORT
 
 const CATEGORY_LABELS = {
   EMERGENCY: 'Emergency', 
@@ -32,8 +33,12 @@ export default function GoalDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showAddFundsModal, setShowAddFundsModal] = useState(false);
+  const [showWithdrawFundsModal, setShowWithdrawFundsModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [addFundsAmount, setAddFundsAmount] = useState('');
+  const [withdrawFundsAmount, setWithdrawFundsAmount] = useState('');
   const [addingFunds, setAddingFunds] = useState(false);
+  const [withdrawingFunds, setWithdrawingFunds] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
@@ -95,19 +100,45 @@ export default function GoalDetail() {
     }
   };
 
+  const handleWithdrawFunds = async () => {
+    const amount = parseFloat(withdrawFundsAmount);
+    if (isNaN(amount) || amount <= 0) {
+      setError('Please enter a valid amount');
+      return;
+    }
+    if (amount > goal.currentAmount) {
+      setError(`Cannot withdraw more than ${goal.currentAmount.toLocaleString()} BHD from this goal`);
+      return;
+    }
+
+    setWithdrawingFunds(true);
+    setError('');
+    try {
+      await axiosClient.post(`/goals/${id}/withdraw`, null, {
+        params: { amount }
+      });
+      
+      await refreshGoal();
+      setShowWithdrawFundsModal(false);
+      setWithdrawFundsAmount('');
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to withdraw funds');
+    } finally {
+      setWithdrawingFunds(false);
+    }
+  };
+
   const handleEditGoal = () => {
     navigate(`/goals/${id}/edit`);
   };
 
   const handleDeleteGoal = async () => {
-    if (window.confirm('Are you sure you want to delete this goal? The money will be returned to your cash balance.')) {
-      try {
-        await axiosClient.delete(`/goals/${id}`);
-        await loadGoals();
-        navigate('/goals');
-      } catch (err) {
-        setError(err.response?.data?.error || 'Failed to delete goal');
-      }
+    try {
+      await axiosClient.delete(`/goals/${id}`);
+      await loadGoals();
+      navigate('/goals');
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to delete goal');
     }
   };
 
@@ -205,14 +236,20 @@ export default function GoalDetail() {
               </div>
             </div>
 
+            {/* ADD THE PROJECTION COMPONENT HERE */}
+            <GoalProjection goal={goal} />
+
             <div className="goal-detail-actions">
               <Button variant="primary" onClick={() => setShowAddFundsModal(true)}>
                 Add Funds
               </Button>
+              <Button variant="secondary" onClick={() => setShowWithdrawFundsModal(true)}>
+                Withdraw Funds
+              </Button>
               <Button variant="secondary" onClick={handleEditGoal}>
                 Edit Goal
               </Button>
-              <Button variant="danger" onClick={handleDeleteGoal}>
+              <Button variant="danger" onClick={() => setShowDeleteModal(true)}>
                 Delete Goal
               </Button>
             </div>
@@ -266,6 +303,75 @@ export default function GoalDetail() {
               </Button>
               <Button variant="primary" onClick={handleAddFunds} loading={addingFunds}>
                 Add Funds
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Withdraw Funds Modal */}
+      {showWithdrawFundsModal && (
+        <div className="modal-overlay" onClick={() => setShowWithdrawFundsModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Withdraw Funds from "{goal.name}"</h2>
+              <button className="modal-close" onClick={() => setShowWithdrawFundsModal(false)}>×</button>
+            </div>
+            
+            <div className="modal-body">
+              <div className="form-group">
+                <label>Current Amount: {goal.currentAmount.toLocaleString()} BHD</label>
+              </div>
+              <div className="form-group">
+                <label>Target Amount: {goal.targetAmount.toLocaleString()} BHD</label>
+              </div>
+              <div className="form-group">
+                <label>Available to Withdraw: {goal.currentAmount.toLocaleString()} BHD</label>
+                <input
+                  type="number"
+                  placeholder="Enter amount to withdraw"
+                  value={withdrawFundsAmount}
+                  onChange={(e) => setWithdrawFundsAmount(e.target.value)}
+                  step="1"
+                  min="1"
+                  max={goal.currentAmount}
+                  autoFocus
+                />
+              </div>
+              {error && <Alert message={error} />}
+            </div>
+
+            <div className="modal-actions">
+              <Button variant="secondary" onClick={() => setShowWithdrawFundsModal(false)}>
+                Cancel
+              </Button>
+              <Button variant="primary" onClick={handleWithdrawFunds} loading={withdrawingFunds}>
+                Withdraw Funds
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="modal-overlay" onClick={() => setShowDeleteModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Delete Goal</h2>
+              <button className="modal-close" onClick={() => setShowDeleteModal(false)}>×</button>
+            </div>
+            <div className="modal-body">
+              <p>Are you sure you want to delete <strong>"{goal.name}"</strong>?</p>
+              <p>The money ({goal.currentAmount.toLocaleString()} BHD) will be returned to your cash balance.</p>
+              <p className="text-error" style={{ marginTop: '16px', fontSize: '13px' }}>This action cannot be undone.</p>
+            </div>
+            <div className="modal-actions">
+              <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
+                Cancel
+              </Button>
+              <Button variant="danger" onClick={handleDeleteGoal}>
+                Delete Goal
               </Button>
             </div>
           </div>

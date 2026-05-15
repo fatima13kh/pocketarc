@@ -59,8 +59,7 @@ export default function CreateGoalPage() {
 
   const loadCashBalance = async () => {
     try {
-      const res = await axiosClient.get('/users/me');
-      console.log('Cash balance:', res.data.cashBalance);
+      await axiosClient.get('/users/me');
     } catch (err) {
       console.error('Failed to load cash balance');
     }
@@ -88,11 +87,8 @@ export default function CreateGoalPage() {
   const handleCreateGoal = async (e) => {
     e.preventDefault();
     
-    console.log('=== STARTING CREATE GOAL ===');
-    
     const validationErrors = validateGoalForm(form);
     if (Object.keys(validationErrors).length > 0) {
-      console.log('Validation errors:', validationErrors);
       setErrors(validationErrors);
       return;
     }
@@ -103,9 +99,7 @@ export default function CreateGoalPage() {
     try {
       let coverImageBase64 = null;
       if (form.coverImage) {
-        console.log('Converting image to Base64...');
         coverImageBase64 = await convertToBase64(form.coverImage);
-        console.log('Image converted, length:', coverImageBase64.length);
       }
       
       const payload = {
@@ -115,34 +109,15 @@ export default function CreateGoalPage() {
         coverImageBase64: coverImageBase64
       };
       
-      // LOG THE PAYLOAD
-      console.log('=== SENDING PAYLOAD ===');
-      console.log('URL:', '/api/goals');
-      console.log('Name:', payload.name);
-      console.log('Target Amount:', payload.targetAmount);
-      console.log('Category:', payload.category);
-      console.log('Has Image:', !!payload.coverImageBase64);
-      console.log('Image length:', payload.coverImageBase64 ? payload.coverImageBase64.length : 0);
-      
       const response = await axiosClient.post('/goals', payload);
-      
-      console.log('=== RESPONSE SUCCESS ===');
-      console.log('Status:', response.status);
-      console.log('Data:', response.data);
       
       setCreatedGoalId(response.data.id);
       setCreatedGoalName(response.data.name);
       setShowAddFundsModal(true);
     } catch (err) {
-      console.error('=== ERROR RESPONSE ===');
-      console.error('Status:', err.response?.status);
-      console.error('Error data:', err.response?.data);
-      console.error('Error message:', err.message);
-      console.error('Full error:', err);
       setApiError(err.response?.data?.error || err.response?.data?.message || 'Failed to create goal');
     } finally {
       setLoading(false);
-      console.log('=== CREATE GOAL FINISHED ===');
     }
   };
 

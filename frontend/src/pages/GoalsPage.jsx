@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
 import PageBanner from '../components/layout/PageBanner';
@@ -98,6 +98,11 @@ export default function GoalsPage() {
   const [progressSort, setProgressSort] = useState('');
   const [targetSort, setTargetSort] = useState('');
   const [currentPage, setCurrentPage] = useState(0);
+
+  // Refresh goals when the page is visited (including from navbar)
+  useEffect(() => {
+    loadGoals();
+  }, [loadGoals]);
 
   const filteredAndSortedGoals = goals
     .filter(goal => {

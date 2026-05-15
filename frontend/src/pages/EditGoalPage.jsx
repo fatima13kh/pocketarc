@@ -67,7 +67,6 @@ export default function EditGoalPage() {
       });
       setCurrentImageUrl(goal.coverImageUrl || '');
     } catch (err) {
-      console.error('Failed to load goal:', err);
       setApiError(err.response?.data?.error || 'Failed to load goal');
     } finally {
       setLoading(false);
@@ -114,7 +113,6 @@ export default function EditGoalPage() {
       
       // If removing image
       if (removeImage) {
-        // Just send removeImage flag
         const payload = {
           name: form.name,
           targetAmount: parseFloat(form.targetAmount),
@@ -122,7 +120,6 @@ export default function EditGoalPage() {
           removeImage: true
         };
         
-        console.log('Updating goal (remove image):', payload);
         await axiosClient.put(`/goals/${id}`, payload);
       } 
       // If adding new image
@@ -135,7 +132,6 @@ export default function EditGoalPage() {
           coverImageBase64: coverImageBase64
         };
         
-        console.log('Updating goal (with new image):', payload);
         await axiosClient.put(`/goals/${id}`, payload);
       }
       // No image change
@@ -146,14 +142,11 @@ export default function EditGoalPage() {
           category: form.category
         };
         
-        console.log('Updating goal (no image change):', payload);
         await axiosClient.put(`/goals/${id}`, payload);
       }
       
       navigate(`/goals/${id}`);
     } catch (err) {
-      console.error('Update goal error:', err);
-      console.error('Error response:', err.response?.data);
       setApiError(err.response?.data?.error || 'Failed to update goal');
     } finally {
       setSubmitting(false);
