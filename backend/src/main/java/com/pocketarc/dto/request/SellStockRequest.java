@@ -1,3 +1,4 @@
+// src/main/java/com/pocketarc/dto/request/SellStockRequest.java
 package com.pocketarc.dto.request;
 
 import jakarta.validation.constraints.DecimalMin;
@@ -9,6 +10,6 @@ public record SellStockRequest(
         Long transactionId,
 
         @NotNull(message = "Shares to sell is required")
-        @DecimalMin(value = "0.01", message = "Shares must be greater than 0")
+        @DecimalMin(value = "0.000001", message = "Shares must be greater than 0")
         BigDecimal sharesToSell
 ) {}

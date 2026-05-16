@@ -1,3 +1,4 @@
+// src/main/java/com/pocketarc/controller/InvestmentController.java
 package com.pocketarc.controller;
 
 import com.pocketarc.dto.request.BuyStockRequest;
@@ -61,14 +62,12 @@ public class InvestmentController {
             return ResponseEntity.notFound().build();
         }
 
-        // Get stock info from database
         Stock stock = stockRepository.findBySymbol(symbol.toUpperCase()).orElse(null);
-
         BigDecimal priceBhd = exchangeRateService.convertUsdToBhd(quote.price());
         String companyName = stock != null ? stock.getCompanyName() : symbol;
         String sector = stock != null ? stock.getSector() : "";
 
-        StockSearchResponse response = new StockSearchResponse(
+        return ResponseEntity.ok(new StockSearchResponse(
                 symbol.toUpperCase(),
                 companyName,
                 quote.price(),
@@ -76,9 +75,7 @@ public class InvestmentController {
                 quote.change(),
                 quote.changePercent(),
                 sector
-        );
-
-        return ResponseEntity.ok(response);
+        ));
     }
 
     @GetMapping("/history/{symbol}")
