@@ -1,14 +1,28 @@
+// src/pages/PortfolioPage.jsx
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
 import PageBanner from '../components/layout/PageBanner';
 import Footer from '../components/layout/Footer';
-import PortfolioSummary from '../components/portfolio/PortfolioSummary';
 import HoldingsList from '../components/portfolio/HoldingsList';
+import PortfolioStatistics from '../components/portfolio/PortfolioStatistics';
 import Spinner from '../components/common/Spinner';
 import Alert from '../components/common/Alert';
 import { useInvestment } from '../hooks/useInvestment';
+import axiosClient from '../api/axiosClient';
 
-const HOLDINGS_PER_PAGE = 4;
+const HOLDINGS_PER_PAGE = 6;
+
+const SORT_OPTIONS = [
+  { value: 'symbol_asc', label: 'Symbol: A to Z' },
+  { value: 'symbol_desc', label: 'Symbol: Z to A' },
+  { value: 'value_asc', label: 'Value: Low to High' },
+  { value: 'value_desc', label: 'Value: High to Low' },
+  { value: 'pl_asc', label: 'P&L: Low to High' },
+  { value: 'pl_desc', label: 'P&L: High to Low' },
+  { value: 'shares_asc', label: 'Shares: Low to High' },
+  { value: 'shares_desc', label: 'Shares: High to Low' },
+];
 
 function Pagination({ currentPage, totalPages, onPageChange }) {
   if (totalPages <= 1) return null;
@@ -77,49 +91,132 @@ function Pagination({ currentPage, totalPages, onPageChange }) {
 }
 
 export default function PortfolioPage() {
-  const { loading, error, getPortfolio, sellStock } = useInvestment();
+  const navigate = useNavigate();
+  const { loading: investmentLoading, error: investmentError, getPortfolio, sellStock, buyStock } = useInvestment();
   
-  const [portfolio, setPortfolio] = useState(null);
   const [holdings, setHoldings] = useState([]);
+  const [filteredHoldings, setFilteredHoldings] = useState([]);
   const [pageLoading, setPageLoading] = useState(true);
   const [selling, setSelling] = useState(false);
-  const [sellError, setSellError] = useState('');
   const [currentPage, setCurrentPage] = useState(0);
+  
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState('');
+  
+  const [cashBalance, setCashBalance] = useState(0);
+  const [holdingsValue, setHoldingsValue] = useState(0);
+  const [totalCost, setTotalCost] = useState(0);
+  const [totalProfitLoss, setTotalProfitLoss] = useState(0);
+  const [totalProfitLossPercent, setTotalProfitLossPercent] = useState(0);
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [statsError, setStatsError] = useState('');
 
   useEffect(() => {
     loadPortfolio();
   }, []);
 
+  useEffect(() => {
+    applyFiltersAndSort();
+  }, [holdings, searchTerm, sortBy]);
+
   const loadPortfolio = async () => {
     setPageLoading(true);
     const result = await getPortfolio();
     if (result.success) {
-      setPortfolio(result.data);
-      setHoldings(result.data.holdings || []);
+      const allHoldings = result.data.holdings || [];
+      const validHoldings = allHoldings.filter(h => h.shares > 0);
+      setHoldings(validHoldings);
+      setHoldingsValue(result.data.totalValueBhd || 0);
+      setTotalCost(result.data.totalCostBhd || 0);
+      setTotalProfitLoss(result.data.totalProfitLossBhd || 0);
+      setTotalProfitLossPercent(result.data.totalProfitLossPercent || 0);
+      await loadPortfolioStats();
     }
     setPageLoading(false);
   };
 
-  const handleSell = async (transactionId, sharesToSell) => {
-    setSelling(true);
-    setSellError('');
-    const result = await sellStock({ transactionId, sharesToSell });
-    if (result.success) {
-      await loadPortfolio();
-      setCurrentPage(0);
-    } else if (result.error) {
-      setSellError(result.error);
+  const loadPortfolioStats = async () => {
+    setStatsLoading(true);
+    try {
+      const userRes = await axiosClient.get('/users/me');
+      const userCashBalance = userRes.data.cashBalance || 0;
+      setCashBalance(userCashBalance);
+    } catch (err) {
+      console.error('Failed to load portfolio stats:', err);
+      setStatsError(err.response?.data?.error || 'Failed to load statistics');
+    } finally {
+      setStatsLoading(false);
     }
-    setSelling(false);
   };
 
-  const totalPages = Math.ceil(holdings.length / HOLDINGS_PER_PAGE);
-  const paginatedHoldings = holdings.slice(
+  const applyFiltersAndSort = () => {
+    let result = [...holdings];
+    
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      result = result.filter(holding => 
+        holding.symbol?.toLowerCase().includes(searchLower) ||
+        holding.companyName?.toLowerCase().includes(searchLower)
+      );
+    }
+    
+    if (sortBy === 'symbol_asc') {
+      result.sort((a, b) => (a.symbol || '').localeCompare(b.symbol || ''));
+    } else if (sortBy === 'symbol_desc') {
+      result.sort((a, b) => (b.symbol || '').localeCompare(a.symbol || ''));
+    } else if (sortBy === 'value_asc') {
+      result.sort((a, b) => (a.currentValueBhd || 0) - (b.currentValueBhd || 0));
+    } else if (sortBy === 'value_desc') {
+      result.sort((a, b) => (b.currentValueBhd || 0) - (a.currentValueBhd || 0));
+    } else if (sortBy === 'pl_asc') {
+      result.sort((a, b) => (a.profitLossBhd || 0) - (b.profitLossBhd || 0));
+    } else if (sortBy === 'pl_desc') {
+      result.sort((a, b) => (b.profitLossBhd || 0) - (a.profitLossBhd || 0));
+    } else if (sortBy === 'shares_asc') {
+      result.sort((a, b) => (a.shares || 0) - (b.shares || 0));
+    } else if (sortBy === 'shares_desc') {
+      result.sort((a, b) => (b.shares || 0) - (a.shares || 0));
+    }
+    
+    setFilteredHoldings(result);
+    setCurrentPage(0);
+  };
+
+  const handleSell = async (transactionId, sharesToSell) => {
+    setSelling(true);
+    try {
+      const result = await sellStock({ transactionId, sharesToSell });
+      if (result.success) {
+        await loadPortfolio();
+        setCurrentPage(0);
+        return { success: true };
+      } else if (result.error) {
+        return { success: false, error: result.error };
+      }
+    } catch (err) {
+      return { success: false, error: err.response?.data?.error || 'Failed to sell stock' };
+    } finally {
+      setSelling(false);
+    }
+    return { success: true };
+  };
+
+  const handleBuyComplete = async (symbol, companyName, amount) => {
+    const result = await buyStock({ symbol, companyName, amountBhd: amount });
+    if (result.success) {
+      await loadPortfolio();
+      return { success: true };
+    }
+    return { success: false, error: result.error };
+  };
+
+  const totalPages = Math.ceil(filteredHoldings.length / HOLDINGS_PER_PAGE);
+  const paginatedHoldings = filteredHoldings.slice(
     currentPage * HOLDINGS_PER_PAGE,
     (currentPage + 1) * HOLDINGS_PER_PAGE
   );
 
-  if (pageLoading && !portfolio) {
+  if (pageLoading || statsLoading) {
     return (
       <div className="page-wrapper">
         <Navbar />
@@ -132,72 +229,118 @@ export default function PortfolioPage() {
     );
   }
 
+  const displayError = investmentError || statsError;
+
   return (
     <div className="page-wrapper">
       <Navbar />
       <PageBanner title="Portfolio" />
 
       <div className="portfolio-container">
-        {error && <Alert message={error} />}
-        {sellError && <Alert message={sellError} />}
+        {displayError && <Alert message={displayError} />}
 
-        {portfolio && (
-          <>
-            <PortfolioSummary portfolio={portfolio} />
+        <PortfolioStatistics
+          cashBalance={cashBalance}
+          holdingsValue={holdingsValue}
+          totalCost={totalCost}
+          totalProfitLoss={totalProfitLoss}
+          totalProfitLossPercent={totalProfitLossPercent}
+        />
 
-            {/* User Guide Section - After Stats, Before Holdings */}
-            <div className="portfolio-guide">
-              <details className="guide-details">
-                <summary className="guide-summary"> 📖 Understanding Your Portfolio & Profit/Loss</summary>
-                <div className="guide-content">
-                  <div className="guide-section">
-                    <h4>📊 What Do These Numbers Mean?</h4>
-                    <ul>
-                      <li><strong>Shares:</strong> Total number of shares you own (can be fractional)</li>
-                      <li><strong>Avg Cost:</strong> Average price you paid per share</li>
-                      <li><strong>Current Price:</strong> Latest market price (updates every 2 hours)</li>
-                      <li><strong>Total Cost:</strong> What you originally paid (Shares × Avg Cost)</li>
-                      <li><strong>Current Value:</strong> What your shares are worth now (Shares × Current Price)</li>
-                      <li><strong>Profit/Loss:</strong> Current Value - Total Cost (<span className="positive-text">green = profit</span>, <span className="negative-text">red = loss</span>)</li>
-                    </ul>
-                  </div>
-                  
-                  <div className="guide-section">
-                    <h4>💰 When Do I Actually Lose Money?</h4>
-                    <ul>
-                      <li><strong>📉 Unrealized Loss (Paper Loss):</strong> When price drops but you <strong>don't sell</strong>. No money is deducted - it's just a number on screen.</li>
-                      <li><strong>💸 Realized Loss:</strong> When you <strong>sell</strong> at a lower price than you bought. Only THEN do you actually lose money.</li>
-                      <li><strong>📈 Unrealized Profit:</strong> When price increases but you <strong>don't sell</strong>. You haven't made real money until you sell.</li>
-                      <li><strong>✅ Realized Profit:</strong> When you <strong>sell</strong> at a higher price than you bought. That's real money in your pocket!</li>
-                    </ul>
-                  </div>
-                  
-                  <div className="guide-section">
-                    <h4>💡 Tips for Beginners</h4>
-                    <ul>
-                      <li>Prices update every 2 hours from real market data</li>
-                      <li>Red number (-) doesn't mean you lost cash yet - only if you sell</li>
-                      <li>Green number (+) means you could make profit if you sell now</li>
-                      <li>Diversify! Don't put all your money in one stock</li>
-                      <li>Check the Stock Simulator to learn more about each company</li>
-                    </ul>
-                  </div>
-                </div>
-              </details>
-            </div>
-
-            <div className="holdings-section">
-              <h2>Your Holdings ({holdings.length} {holdings.length === 1 ? 'stock' : 'stocks'})</h2>
-              <HoldingsList holdings={paginatedHoldings} onSell={handleSell} selling={selling} />
+        <div className="portfolio-guide">
+          <details className="guide-details">
+            <summary className="guide-summary"> 📖 Understanding Your Portfolio</summary>
+            <div className="guide-content">
+              <div className="guide-section">
+                <h4>💰 Your Spendable Cash</h4>
+                <ul>
+                  <li>This is the money you can actually USE for savings goals and investment stories</li>
+                  <li>When you sell stocks, this amount increases</li>
+                  <li>When you buy stocks or add to goals, this amount decreases</li>
+                </ul>
+              </div>
               
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
-              />
+              <div className="guide-section">
+                <h4>📊 Understanding Your Stock Value</h4>
+                <ul>
+                  <li><strong>Current Stock Value:</strong> What your stocks are worth right now</li>
+                  <li><strong>Total Cost:</strong> What you originally paid for your stocks</li>
+                  <li><strong>Total P&L:</strong> Your profit or loss = Current Value - Total Cost</li>
+                </ul>
+              </div>
             </div>
-          </>
-        )}
+          </details>
+        </div>
+
+        <div className="holdings-toolbar">
+          <div className="holdings-search">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="m21 21-4.35-4.35"/>
+            </svg>
+            <input
+              type="text"
+              placeholder="Search by symbol or company name..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          
+          <select 
+            className="holdings-sort-select"
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+          >
+            <option value="">Sort By</option>
+            {SORT_OPTIONS.map(option => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="holdings-section">
+          <h2>Your Holdings ({filteredHoldings.length} {filteredHoldings.length === 1 ? 'stock' : 'stocks'})</h2>
+          
+          {filteredHoldings.length === 0 ? (
+            <div className="empty-holdings">
+              {searchTerm ? (
+                <>
+                  <p>No stocks found matching "{searchTerm}"</p>
+                  <button className="btn btn-secondary" onClick={() => setSearchTerm('')}>
+                    Clear Search
+                  </button>
+                </>
+              ) : (
+                <>
+                  <p>You don't have any investments yet.</p>
+                  <p>Go to the Investment Simulator to start building your portfolio!</p>
+                  <button className="btn btn-primary" onClick={() => navigate('/simulator')}>
+                    Go to Simulator
+                  </button>
+                </>
+              )}
+            </div>
+          ) : (
+            <>
+              <HoldingsList 
+                holdings={paginatedHoldings} 
+                onSell={handleSell} 
+                selling={selling}
+                onBuyComplete={handleBuyComplete}
+              />
+              
+              {totalPages > 1 && (
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                />
+              )}
+            </>
+          )}
+        </div>
       </div>
 
       <Footer />

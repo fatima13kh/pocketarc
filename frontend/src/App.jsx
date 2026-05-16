@@ -23,6 +23,7 @@ import StoryEditorPage from './pages/admin/StoryEditorPage';
 import GenerateStoryPage from './pages/admin/GenerateStoryPage';
 import AdminStoryViewPage from './pages/admin/AdminStoryViewPage';
 import GoalDetail from './pages/GoalDetail';
+import PortfolioStockDetailPage from './pages/PortfolioStockDetailPage';
 
 function PrivateRoute({ children }) {
   const { user } = useAuth();
@@ -60,6 +61,7 @@ function AppRoutes() {
       <Route path="/goals" element={<PrivateRoute><GoalsPage /></PrivateRoute>} />
       <Route path="/simulator/:symbol" element={<PrivateRoute><StockDetailPage /></PrivateRoute>} />
       <Route path="/simulator" element={<PrivateRoute><InvestmentSimulatorPage /></PrivateRoute>} />
+      <Route path="/portfolio/stock/:symbol" element={<PrivateRoute><PortfolioStockDetailPage /></PrivateRoute>} />
       <Route path="/portfolio" element={<PrivateRoute><PortfolioPage /></PrivateRoute>} />
       <Route path="/stories" element={<PrivateRoute><InvestmentStoriesPage /></PrivateRoute>} />
       <Route path="/stories/:id/play" element={<PrivateRoute><StoryPlayPage /></PrivateRoute>} />

@@ -1,10 +1,18 @@
+// src/components/portfolio/HoldingsList.jsx
 import { useNavigate } from 'react-router-dom';
 import HoldingCard from './HoldingCard';
 
-export default function HoldingsList({ holdings, onSell, selling }) {
+const MINIMUM_SHARES_THRESHOLD = 0.0001;
+
+export default function HoldingsList({ holdings, onSell, selling, onBuyComplete }) {
   const navigate = useNavigate();
 
-  if (holdings.length === 0) {
+  const validHoldings = holdings.filter(holding => {
+    const shares = typeof holding.shares === 'number' ? holding.shares : parseFloat(holding.shares);
+    return shares > MINIMUM_SHARES_THRESHOLD;
+  });
+
+  if (validHoldings.length === 0) {
     return (
       <div className="empty-holdings">
         <p>You don't have any investments yet.</p>
@@ -22,12 +30,13 @@ export default function HoldingsList({ holdings, onSell, selling }) {
 
   return (
     <div className="holdings-list">
-      {holdings.map((holding) => (
+      {validHoldings.map((holding) => (
         <HoldingCard 
-          key={holding.transactionId} 
+          key={holding.symbol} 
           holding={holding} 
           onSell={onSell}
           selling={selling}
+          onBuyComplete={onBuyComplete}
         />
       ))}
     </div>
