@@ -14,6 +14,7 @@ import GoalsPage from './pages/GoalsPage';
 import CreateGoalPage from './pages/CreateGoalPage';
 import EditGoalPage from './pages/EditGoalPage';
 import InvestmentSimulatorPage from './pages/InvestmentSimulatorPage';
+import StockDetailPage from './pages/StockDetailPage'; 
 import PortfolioPage from './pages/PortfolioPage';
 import InvestmentStoriesPage from './pages/InvestmentStoriesPage';
 import StoryPlayPage from './pages/StoryPlayPage';
@@ -57,6 +58,7 @@ function AppRoutes() {
       <Route path="/goals/:id/edit" element={<PrivateRoute><EditGoalPage /></PrivateRoute>} />
       <Route path="/goals/:id" element={<PrivateRoute><GoalDetail /></PrivateRoute>} />
       <Route path="/goals" element={<PrivateRoute><GoalsPage /></PrivateRoute>} />
+      <Route path="/simulator/:symbol" element={<PrivateRoute><StockDetailPage /></PrivateRoute>} />
       <Route path="/simulator" element={<PrivateRoute><InvestmentSimulatorPage /></PrivateRoute>} />
       <Route path="/portfolio" element={<PrivateRoute><PortfolioPage /></PrivateRoute>} />
       <Route path="/stories" element={<PrivateRoute><InvestmentStoriesPage /></PrivateRoute>} />
