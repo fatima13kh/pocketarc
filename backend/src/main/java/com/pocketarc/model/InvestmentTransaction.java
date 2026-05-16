@@ -24,9 +24,7 @@ public class InvestmentTransaction {
     private Stock stock;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "transaction_type",
-            columnDefinition = "transaction_type",
-            nullable = false)
+    @Column(name = "transaction_type", nullable = false)
     private TransactionType transactionType;
 
     @Column(nullable = false, precision = 16, scale = 6)
@@ -38,6 +36,7 @@ public class InvestmentTransaction {
     @Column(name = "total_amount_bhd", nullable = false, precision = 12, scale = 4)
     private BigDecimal totalAmountBhd;
 
+    @Builder.Default
     @Column(name = "transaction_date", nullable = false)
     private LocalDateTime transactionDate = LocalDateTime.now();
 }

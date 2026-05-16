@@ -42,4 +42,8 @@ public class Stock {
 
     @Column(name = "last_price_update")
     private LocalDateTime lastPriceUpdate;
+
+    @Builder.Default
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt = LocalDateTime.now();
 }

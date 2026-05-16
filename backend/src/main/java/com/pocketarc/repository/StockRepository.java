@@ -11,4 +11,6 @@ public interface StockRepository extends JpaRepository<Stock, Long> {
     Optional<Stock> findBySymbol(String symbol);
     List<Stock> findByCompanyNameContainingIgnoreCase(String name);
     List<Stock> findBySectorIgnoreCase(String sector);
+    List<Stock> findAllByOrderBySymbolAsc();
+    List<Stock> findAllByOrderByCompanyNameAsc();
 }

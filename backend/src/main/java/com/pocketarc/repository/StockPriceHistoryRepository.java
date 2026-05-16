@@ -11,4 +11,6 @@ import java.util.Optional;
 public interface StockPriceHistoryRepository extends JpaRepository<StockPriceHistory, Long> {
     List<StockPriceHistory> findAllByStockIdOrderByDateAsc(Long stockId);
     Optional<StockPriceHistory> findByStockIdAndDate(Long stockId, LocalDate date);
+    boolean existsByStockId(Long stockId);
+    void deleteByStockId(Long stockId);
 }
