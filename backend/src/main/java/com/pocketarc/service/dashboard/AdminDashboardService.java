@@ -4,15 +4,14 @@ package com.pocketarc.service.dashboard;
 import com.pocketarc.dto.response.AdminDashboardResponse;
 import com.pocketarc.model.*;
 import com.pocketarc.model.enums.TransactionType;
+import com.pocketarc.model.enums.StoryStatus;
 import com.pocketarc.repository.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -44,47 +43,51 @@ public class AdminDashboardService extends BaseDashboardService {
         List<User> allUsers = userRepository.findAll();
         List<Story> allStories = storyRepository.findAll();
 
+        // Calculate goals reached
+        List<SavingsGoal> allGoals = savingsGoalRepository.findAll();
+        long goalsReached = allGoals.stream()
+                .filter(goal -> goal.getCurrentAmount().compareTo(goal.getTargetAmount()) >= 0)
+                .count();
+
         return AdminDashboardResponse.builder()
                 // User statistics
-                .totalUsers(allUsers.size())
-                .verifiedUsers((int) allUsers.stream().filter(User::getIsVerified).count())
-                .unverifiedUsers((int) allUsers.stream().filter(u -> !u.getIsVerified()).count())
-                .adminUsers((int) allUsers.stream().filter(User::getIsAdmin).count())
+                .totalUsers((int) allUsers.stream().filter(u -> !u.getIsAdmin()).count())
                 .usersJoinedThisMonth((int) allUsers.stream()
-                        .filter(u -> u.getCreatedAt().isAfter(LocalDateTime.now().minusDays(30))).count())
+                        .filter(u -> !u.getIsAdmin() && u.getCreatedAt().isAfter(LocalDateTime.now().minusDays(30))).count())
 
                 // Financial statistics
                 .totalCashInSystem(calculateTotalCash(allUsers))
                 .totalInvestments(calculateSystemTotalInvestments())
                 .totalSavings(calculateSystemTotalSavings())
-                .totalNetWorthSystem(calculateTotalNetWorth(allUsers))
-
-                // Story statistics
-                .totalStories(allStories.size())
-                .publishedStories((int) allStories.stream().filter(s -> s.getStatus().toString().equals("PUBLISHED")).count())
-                .draftStories((int) allStories.stream().filter(s -> s.getStatus().toString().equals("DRAFT")).count())
-                .pendingReviewStories((int) allStories.stream().filter(s -> s.getStatus().toString().equals("PENDING_REVIEW")).count())
-                .totalAiGeneratedStories((int) allStories.stream().filter(s -> s.getAuthorType().toString().equals("AI_GENERATED")).count())
-                .totalAdminCreatedStories((int) allStories.stream().filter(s -> s.getAuthorType().toString().equals("ADMIN")).count())
 
                 // Activity statistics
                 .totalTransactions((int) transactionRepository.count())
                 .totalBuyTransactions(getTransactionCountByType(TransactionType.BUY))
                 .totalSellTransactions(getTransactionCountByType(TransactionType.SELL))
-                .totalStoriesPlayed((int) storyProgressRepository.count())  // FIXED: cast long to int
-                .totalGoalsCreated((int) savingsGoalRepository.count())      // FIXED: cast long to int
+                .totalStoriesPlayed((int) storyProgressRepository.count())
+                .totalStoriesUnplayed(calculateUnplayedStories(allStories))
+                .totalGoalsCreated((int) allGoals.size())
+                .totalGoalsReached((int) goalsReached)
 
-                // Charts
-                .userRegistrations(generateUserRegistrationData(allUsers))
-                .systemGrowth(generateSystemGrowthData())
+                // Top lists
                 .popularStocks(getPopularStocks())
-                .storyPerformance(getStoryPerformance(allStories))
-                .activityTimeline(generateActivityTimeline())
+                .storyPerformance(getTopPlayedStories(allStories))
                 .build();
+    }
+
+    private int calculateUnplayedStories(List<Story> stories) {
+        long publishedStories = stories.stream()
+                .filter(s -> s.getStatus() == StoryStatus.PUBLISHED)
+                .count();
+        long playedStories = stories.stream()
+                .filter(s -> storyProgressRepository.existsByStoryId(s.getId()))
+                .count();
+        return (int) (publishedStories - playedStories);
     }
 
     private BigDecimal calculateTotalCash(List<User> users) {
         return users.stream()
+                .filter(u -> !u.getIsAdmin())
                 .map(User::getCashBalance)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
@@ -101,61 +104,10 @@ public class AdminDashboardService extends BaseDashboardService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    private BigDecimal calculateTotalNetWorth(List<User> users) {
-        BigDecimal totalCash = calculateTotalCash(users);
-        BigDecimal totalInvestments = calculateSystemTotalInvestments();
-        BigDecimal totalSavings = calculateSystemTotalSavings();
-        return totalCash.add(totalInvestments).add(totalSavings);
-    }
-
     private int getTransactionCountByType(TransactionType type) {
         return (int) transactionRepository.findAll().stream()
                 .filter(tx -> tx.getTransactionType() == type)
                 .count();
-    }
-
-    private List<AdminDashboardResponse.UserRegistrationPoint> generateUserRegistrationData(List<User> users) {
-        List<AdminDashboardResponse.UserRegistrationPoint> data = new ArrayList<>();
-        LocalDate now = LocalDate.now();
-
-        for (int i = 29; i >= 0; i--) {
-            LocalDate date = now.minusDays(i);
-            LocalDateTime start = date.atStartOfDay();
-            LocalDateTime end = date.plusDays(1).atStartOfDay();
-
-            int registrations = (int) users.stream()
-                    .filter(u -> u.getCreatedAt().isAfter(start) && u.getCreatedAt().isBefore(end))
-                    .count();
-
-            int verified = (int) users.stream()
-                    .filter(u -> u.getIsVerified() && u.getCreatedAt().isAfter(start) && u.getCreatedAt().isBefore(end))
-                    .count();
-
-            data.add(AdminDashboardResponse.UserRegistrationPoint.builder()
-                    .date(date.format(DateTimeFormatter.ofPattern("dd MMM")))
-                    .registrations(registrations)
-                    .verified(verified)
-                    .build());
-        }
-        return data;
-    }
-
-    private List<AdminDashboardResponse.SystemGrowthPoint> generateSystemGrowthData() {
-        List<AdminDashboardResponse.SystemGrowthPoint> data = new ArrayList<>();
-        LocalDate now = LocalDate.now();
-
-        for (int i = 29; i >= 0; i--) {
-            LocalDate date = now.minusDays(i);
-            double progress = (29 - i) / 29.0;
-
-            data.add(AdminDashboardResponse.SystemGrowthPoint.builder()
-                    .date(date.format(DateTimeFormatter.ofPattern("dd MMM")))
-                    .totalNetWorth(new BigDecimal("10000").multiply(BigDecimal.valueOf(1 + progress)))
-                    .totalInvestments(new BigDecimal("5000").multiply(BigDecimal.valueOf(1 + progress)))
-                    .totalCash(new BigDecimal("5000").multiply(BigDecimal.valueOf(1 + progress)))
-                    .build());
-        }
-        return data;
     }
 
     private List<AdminDashboardResponse.PopularStocksPoint> getPopularStocks() {
@@ -175,6 +127,9 @@ public class AdminDashboardService extends BaseDashboardService {
                 popular.add(AdminDashboardResponse.PopularStocksPoint.builder()
                         .symbol(entry.getKey())
                         .companyName(stock.getCompanyName())
+                        .sector(stock.getSector())
+                        .currentPriceBhd(stock.getCurrentPriceBhd())
+                        .changePercent(stock.getChangePercentage())
                         .userCount(entry.getValue())
                         .totalValue(stockTotalValue.getOrDefault(entry.getKey(), BigDecimal.ZERO))
                         .averageHolding(stockTotalValue.getOrDefault(entry.getKey(), BigDecimal.ZERO)
@@ -187,9 +142,11 @@ public class AdminDashboardService extends BaseDashboardService {
         return popular.stream().limit(5).collect(Collectors.toList());
     }
 
-    private List<AdminDashboardResponse.StoryPerformancePoint> getStoryPerformance(List<Story> stories) {
+    private List<AdminDashboardResponse.StoryPerformancePoint> getTopPlayedStories(List<Story> stories) {
         return stories.stream()
+                .filter(story -> story.getStatus() == StoryStatus.PUBLISHED)
                 .map(story -> AdminDashboardResponse.StoryPerformancePoint.builder()
+                        .id(story.getId())
                         .title(story.getTitle())
                         .playsCount((int) storyProgressRepository.countByStoryId(story.getId()))
                         .averageReward(story.getRewardPerCorrect())
@@ -198,36 +155,5 @@ public class AdminDashboardService extends BaseDashboardService {
                 .sorted((a, b) -> b.getPlaysCount().compareTo(a.getPlaysCount()))
                 .limit(5)
                 .collect(Collectors.toList());
-    }
-
-    private List<AdminDashboardResponse.ActivityTimelinePoint> generateActivityTimeline() {
-        List<AdminDashboardResponse.ActivityTimelinePoint> timeline = new ArrayList<>();
-        LocalDate now = LocalDate.now();
-
-        for (int i = 29; i >= 0; i--) {
-            LocalDate date = now.minusDays(i);
-            LocalDateTime start = date.atStartOfDay();
-            LocalDateTime end = date.plusDays(1).atStartOfDay();
-
-            int transactions = (int) transactionRepository.findAll().stream()
-                    .filter(tx -> tx.getTransactionDate().isAfter(start) && tx.getTransactionDate().isBefore(end))
-                    .count();
-
-            int storiesPlayed = (int) storyProgressRepository.findAll().stream()
-                    .filter(p -> p.getCompletedAt() != null && p.getCompletedAt().isAfter(start) && p.getCompletedAt().isBefore(end))
-                    .count();
-
-            int goalsCreated = (int) savingsGoalRepository.findAll().stream()
-                    .filter(g -> g.getCreatedAt().isAfter(start) && g.getCreatedAt().isBefore(end))
-                    .count();
-
-            timeline.add(AdminDashboardResponse.ActivityTimelinePoint.builder()
-                    .date(date.format(DateTimeFormatter.ofPattern("dd MMM")))
-                    .transactions(transactions)
-                    .storiesPlayed(storiesPlayed)
-                    .goalsCreated(goalsCreated)
-                    .build());
-        }
-        return timeline;
     }
 }

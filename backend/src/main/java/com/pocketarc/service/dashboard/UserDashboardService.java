@@ -47,10 +47,8 @@ public class UserDashboardService extends BaseDashboardService {
         List<InvestmentTransaction> allTransactions = transactionRepository.findAllByUserIdOrderByTransactionDateDesc(userId);
         Map<Long, BigDecimal> currentHoldings = calculateCurrentHoldings(allTransactions);
 
-        // Calculate current investments value (only stocks currently owned)
+        // Calculate financials
         BigDecimal totalInvestmentsValue = calculateCurrentInvestmentsValue(currentHoldings);
-
-        // Calculate total shares owned (sum of all shares across all stocks)
         BigDecimal totalSharesOwned = calculateTotalSharesOwned(currentHoldings);
 
         // Get savings goals - total amount saved
@@ -59,11 +57,10 @@ public class UserDashboardService extends BaseDashboardService {
                 .map(SavingsGoal::getCurrentAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // Cash balance is what user can actually use
-        BigDecimal cashBalance = user.getCashBalance();
+        // Calculate total story rewards
+        BigDecimal totalStoryRewards = calculateTotalStoryRewards(userId);
 
-        // Total net worth = cash + current investments value + savings
-        BigDecimal totalNetWorth = cashBalance.add(totalInvestmentsValue).add(totalSavingsAmount);
+        BigDecimal cashBalance = user.getCashBalance();
 
         return UserDashboardResponse.builder()
                 .username(user.getUsername())
@@ -73,14 +70,24 @@ public class UserDashboardService extends BaseDashboardService {
                 .totalInvestments(totalInvestmentsValue)
                 .totalSharesOwned(totalSharesOwned)
                 .totalSavingsGoals(totalSavingsAmount)
-                .totalNetWorth(totalNetWorth)
-                .netWorthHistory(generateNetWorthHistory(cashBalance, totalInvestmentsValue, totalSavingsAmount))
+                .totalStoryRewards(totalStoryRewards)
+                .netWorthHistory(generateNetWorthHistory(cashBalance, totalInvestmentsValue, totalStoryRewards))
                 .portfolioAllocation(generatePortfolioAllocation(currentHoldings))
                 .goalsProgress(generateGoalsProgress(goals))
                 .monthlyActivity(generateMonthlyActivity(allTransactions))
                 .recentTransactions(getRecentTransactions(allTransactions))
                 .recentStories(getRecentStories(userId))
                 .build();
+    }
+
+    private BigDecimal calculateTotalStoryRewards(Long userId) {
+        List<UserStoryProgress> completedStories = storyProgressRepository.findAllByUserId(userId).stream()
+                .filter(UserStoryProgress::getCompletedStory)
+                .collect(Collectors.toList());
+
+        return completedStories.stream()
+                .map(UserStoryProgress::getTotalRewardClaimed)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     private Map<Long, BigDecimal> calculateCurrentHoldings(List<InvestmentTransaction> transactions) {
@@ -115,22 +122,27 @@ public class UserDashboardService extends BaseDashboardService {
         return total;
     }
 
-    private List<UserDashboardResponse.NetWorthHistoryPoint> generateNetWorthHistory(BigDecimal currentCash, BigDecimal currentInvestments, BigDecimal currentSavings) {
+    private List<UserDashboardResponse.NetWorthHistoryPoint> generateNetWorthHistory(
+            BigDecimal currentCash,
+            BigDecimal currentInvestments,
+            BigDecimal currentStoryRewards) {
+
         List<UserDashboardResponse.NetWorthHistoryPoint> history = new ArrayList<>();
         LocalDate today = LocalDate.now();
 
         for (int i = 29; i >= 0; i--) {
             LocalDate date = today.minusDays(i);
             double progress = (29 - i) / 29.0;
+
             BigDecimal cash = STARTING_BALANCE.add(currentCash.subtract(STARTING_BALANCE).multiply(BigDecimal.valueOf(progress)));
             BigDecimal investments = currentInvestments.multiply(BigDecimal.valueOf(progress));
-            BigDecimal savings = currentSavings.multiply(BigDecimal.valueOf(progress));
+            BigDecimal storyRewards = currentStoryRewards.multiply(BigDecimal.valueOf(progress));
 
             history.add(UserDashboardResponse.NetWorthHistoryPoint.builder()
                     .date(date.format(DateTimeFormatter.ofPattern("dd MMM")))
-                    .netWorth(cash.add(investments).add(savings))
                     .cashBalance(cash)
                     .investmentsValue(investments)
+                    .storyRewards(storyRewards)
                     .build());
         }
         return history;
@@ -225,7 +237,7 @@ public class UserDashboardService extends BaseDashboardService {
         return storyProgressRepository.findAllByUserId(userId).stream()
                 .filter(p -> p.getCompletedStory() && p.getCompletedAt() != null)
                 .sorted((a, b) -> b.getCompletedAt().compareTo(a.getCompletedAt()))
-                .limit(3)
+                .limit(5)
                 .map(p -> UserDashboardResponse.RecentStory.builder()
                         .title(p.getStory().getTitle())
                         .completedAt(p.getCompletedAt().format(DateTimeFormatter.ofPattern("dd MMM yyyy")))

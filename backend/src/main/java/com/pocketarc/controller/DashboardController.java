@@ -1,8 +1,6 @@
 // src/main/java/com/pocketarc/controller/DashboardController.java
 package com.pocketarc.controller;
 
-import com.pocketarc.dto.response.AdminDashboardResponse;
-import com.pocketarc.dto.response.UserDashboardResponse;
 import com.pocketarc.security.JwtTokenProvider;
 import com.pocketarc.service.DashboardService;
 import lombok.RequiredArgsConstructor;

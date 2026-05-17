@@ -17,9 +17,9 @@ public class UserDashboardResponse {
     // Financial Summary
     private BigDecimal cashBalance;           // Your spendable cash
     private BigDecimal totalInvestments;       // Current value of stocks you own
-    private BigDecimal totalSharesOwned;       // Total shares owned across all stocks (not sold)
+    private BigDecimal totalSharesOwned;       // Total shares owned across all stocks
     private BigDecimal totalSavingsGoals;      // Total amount saved in goals
-    private BigDecimal totalNetWorth;          // Cash + Investments + Savings
+    private BigDecimal totalStoryRewards;      // Total rewards from completed stories
 
     // Charts Data
     private List<NetWorthHistoryPoint> netWorthHistory;
@@ -35,9 +35,9 @@ public class UserDashboardResponse {
     @Builder
     public static class NetWorthHistoryPoint {
         private String date;
-        private BigDecimal netWorth;
         private BigDecimal cashBalance;
         private BigDecimal investmentsValue;
+        private BigDecimal storyRewards;
     }
 
     @Data
