@@ -1,6 +1,8 @@
+// src/main/java/com/pocketarc/controller/DashboardController.java
 package com.pocketarc.controller;
 
-import com.pocketarc.dto.response.DashboardSummaryResponse;
+import com.pocketarc.dto.response.AdminDashboardResponse;
+import com.pocketarc.dto.response.UserDashboardResponse;
 import com.pocketarc.security.JwtTokenProvider;
 import com.pocketarc.service.DashboardService;
 import lombok.RequiredArgsConstructor;
@@ -20,10 +22,19 @@ public class DashboardController {
         return jwtTokenProvider.getUserIdFromToken(token);
     }
 
-    @GetMapping("/summary")
-    public ResponseEntity<DashboardSummaryResponse> getDashboardSummary(
-            @RequestHeader("Authorization") String authHeader) {
+    private boolean isAdmin(String authHeader) {
+        String token = authHeader.substring(7);
+        return jwtTokenProvider.isAdminFromToken(token);
+    }
+
+    @GetMapping
+    public ResponseEntity<?> getDashboard(@RequestHeader("Authorization") String authHeader) {
         Long userId = extractUserId(authHeader);
-        return ResponseEntity.ok(dashboardService.getDashboardSummary(userId));
+
+        if (isAdmin(authHeader)) {
+            return ResponseEntity.ok(dashboardService.getAdminDashboard());
+        } else {
+            return ResponseEntity.ok(dashboardService.getUserDashboard(userId));
+        }
     }
 }
