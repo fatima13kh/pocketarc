@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+// src/pages/InvestmentSimulatorPage.jsx
+import { useState, useEffect, useCallback } from 'react';
 import Navbar from '../components/layout/Navbar';
 import PageBanner from '../components/layout/PageBanner';
 import Footer from '../components/layout/Footer';
@@ -87,17 +88,22 @@ export default function InvestmentSimulatorPage() {
   
   const [searchTerm, setSearchTerm] = useState('');
   const [sectorFilter, setSectorFilter] = useState('');
-  const [sortBy, setSortBy] = useState('');
+  // Separate sort states
+  const [priceSort, setPriceSort] = useState('');
+  const [changeSort, setChangeSort] = useState('');
+  const [nameSort, setNameSort] = useState('');
   
   const { loading, error, searchStocks, getPopularStocks, buyStock, getPortfolio } = useInvestment();
 
+  // Load initial stocks
   useEffect(() => {
     loadPopularStocks();
   }, []);
 
+  // Apply filters whenever dependencies change
   useEffect(() => {
     applyFiltersAndSort();
-  }, [allStocks, searchTerm, sectorFilter, sortBy]);
+  }, [allStocks, searchTerm, sectorFilter, priceSort, changeSort, nameSort]);
 
   const loadPopularStocks = async () => {
     setLoadingStocks(true);
@@ -111,6 +117,7 @@ export default function InvestmentSimulatorPage() {
   const applyFiltersAndSort = () => {
     let result = [...allStocks];
     
+    // Apply search filter
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
       result = result.filter(stock => 
@@ -119,21 +126,29 @@ export default function InvestmentSimulatorPage() {
       );
     }
     
+    // Apply sector filter
     if (sectorFilter) {
       result = result.filter(stock => stock.sector === sectorFilter);
     }
     
-    if (sortBy === 'price_asc') {
+    // Apply Price sorting
+    if (priceSort === 'price_asc') {
       result.sort((a, b) => (a.priceBhd || 0) - (b.priceBhd || 0));
-    } else if (sortBy === 'price_desc') {
+    } else if (priceSort === 'price_desc') {
       result.sort((a, b) => (b.priceBhd || 0) - (a.priceBhd || 0));
-    } else if (sortBy === 'change_asc') {
+    }
+    
+    // Apply Change sorting
+    if (changeSort === 'change_asc') {
       result.sort((a, b) => (a.changePercent || 0) - (b.changePercent || 0));
-    } else if (sortBy === 'change_desc') {
+    } else if (changeSort === 'change_desc') {
       result.sort((a, b) => (b.changePercent || 0) - (a.changePercent || 0));
-    } else if (sortBy === 'name_asc') {
+    }
+    
+    // Apply Name sorting
+    if (nameSort === 'name_asc') {
       result.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-    } else if (sortBy === 'name_desc') {
+    } else if (nameSort === 'name_desc') {
       result.sort((a, b) => (b.name || '').localeCompare(a.name || ''));
     }
     
@@ -141,8 +156,13 @@ export default function InvestmentSimulatorPage() {
     setCurrentPage(0);
   };
 
-  const handleSearch = async (value) => {
+  // Handle search change with debounce
+  const handleSearchChange = useCallback((value) => {
     setSearchTerm(value);
+  }, []);
+
+  // Handle search submit
+  const handleSearch = async (value) => {
     if (value.trim()) {
       setLoadingStocks(true);
       const result = await searchStocks(value);
@@ -201,11 +221,15 @@ export default function InvestmentSimulatorPage() {
       <div className="stocks-container">
         <StockFilters
           searchTerm={searchTerm}
-          onSearchChange={handleSearch}
+          onSearchChange={handleSearchChange}
           sectorFilter={sectorFilter}
           onSectorChange={setSectorFilter}
-          sortBy={sortBy}
-          onSortChange={setSortBy}
+          priceSort={priceSort}
+          onPriceSortChange={setPriceSort}
+          changeSort={changeSort}
+          onChangeSortChange={setChangeSort}
+          nameSort={nameSort}
+          onNameSortChange={setNameSort}
           loading={loadingStocks}
         />
 

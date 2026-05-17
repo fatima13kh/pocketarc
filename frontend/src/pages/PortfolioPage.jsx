@@ -6,23 +6,13 @@ import PageBanner from '../components/layout/PageBanner';
 import Footer from '../components/layout/Footer';
 import HoldingsList from '../components/portfolio/HoldingsList';
 import PortfolioStatistics from '../components/portfolio/PortfolioStatistics';
+import HoldingsFilterBar from '../components/portfolio/HoldingsFilterBar';
 import Spinner from '../components/common/Spinner';
 import Alert from '../components/common/Alert';
 import { useInvestment } from '../hooks/useInvestment';
 import axiosClient from '../api/axiosClient';
 
-const HOLDINGS_PER_PAGE = 6;
-
-const SORT_OPTIONS = [
-  { value: 'symbol_asc', label: 'Symbol: A to Z' },
-  { value: 'symbol_desc', label: 'Symbol: Z to A' },
-  { value: 'value_asc', label: 'Value: Low to High' },
-  { value: 'value_desc', label: 'Value: High to Low' },
-  { value: 'pl_asc', label: 'P&L: Low to High' },
-  { value: 'pl_desc', label: 'P&L: High to Low' },
-  { value: 'shares_asc', label: 'Shares: Low to High' },
-  { value: 'shares_desc', label: 'Shares: High to Low' },
-];
+const HOLDINGS_PER_PAGE = 4;
 
 function Pagination({ currentPage, totalPages, onPageChange }) {
   if (totalPages <= 1) return null;
@@ -101,7 +91,13 @@ export default function PortfolioPage() {
   const [currentPage, setCurrentPage] = useState(0);
   
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
+  
+  // Separate sort states
+  const [nameSort, setNameSort] = useState('');
+  const [valueSort, setValueSort] = useState('');
+  const [changeSort, setChangeSort] = useState('');
+  const [sharesSort, setSharesSort] = useState('');
   
   const [cashBalance, setCashBalance] = useState(0);
   const [holdingsValue, setHoldingsValue] = useState(0);
@@ -117,7 +113,7 @@ export default function PortfolioPage() {
 
   useEffect(() => {
     applyFiltersAndSort();
-  }, [holdings, searchTerm, sortBy]);
+  }, [holdings, searchTerm, categoryFilter, nameSort, valueSort, changeSort, sharesSort]);
 
   const loadPortfolio = async () => {
     setPageLoading(true);
@@ -152,6 +148,7 @@ export default function PortfolioPage() {
   const applyFiltersAndSort = () => {
     let result = [...holdings];
     
+    // Apply search filter
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
       result = result.filter(holding => 
@@ -160,21 +157,36 @@ export default function PortfolioPage() {
       );
     }
     
-    if (sortBy === 'symbol_asc') {
-      result.sort((a, b) => (a.symbol || '').localeCompare(b.symbol || ''));
-    } else if (sortBy === 'symbol_desc') {
-      result.sort((a, b) => (b.symbol || '').localeCompare(a.symbol || ''));
-    } else if (sortBy === 'value_asc') {
+    // Apply category filter
+    if (categoryFilter) {
+      result = result.filter(holding => holding.sector === categoryFilter);
+    }
+    
+    // Apply Name sorting
+    if (nameSort === 'name_asc') {
+      result.sort((a, b) => (a.companyName || '').localeCompare(b.companyName || ''));
+    } else if (nameSort === 'name_desc') {
+      result.sort((a, b) => (b.companyName || '').localeCompare(a.companyName || ''));
+    }
+    
+    // Apply Value sorting
+    if (valueSort === 'value_asc') {
       result.sort((a, b) => (a.currentValueBhd || 0) - (b.currentValueBhd || 0));
-    } else if (sortBy === 'value_desc') {
+    } else if (valueSort === 'value_desc') {
       result.sort((a, b) => (b.currentValueBhd || 0) - (a.currentValueBhd || 0));
-    } else if (sortBy === 'pl_asc') {
+    }
+    
+    // Apply Change sorting (P&L)
+    if (changeSort === 'pl_asc') {
       result.sort((a, b) => (a.profitLossBhd || 0) - (b.profitLossBhd || 0));
-    } else if (sortBy === 'pl_desc') {
+    } else if (changeSort === 'pl_desc') {
       result.sort((a, b) => (b.profitLossBhd || 0) - (a.profitLossBhd || 0));
-    } else if (sortBy === 'shares_asc') {
+    }
+    
+    // Apply Shares sorting
+    if (sharesSort === 'shares_asc') {
       result.sort((a, b) => (a.shares || 0) - (b.shares || 0));
-    } else if (sortBy === 'shares_desc') {
+    } else if (sharesSort === 'shares_desc') {
       result.sort((a, b) => (b.shares || 0) - (a.shares || 0));
     }
     
@@ -239,16 +251,9 @@ export default function PortfolioPage() {
       <div className="portfolio-container">
         {displayError && <Alert message={displayError} />}
 
-        <PortfolioStatistics
-          cashBalance={cashBalance}
-          holdingsValue={holdingsValue}
-          totalCost={totalCost}
-          totalProfitLoss={totalProfitLoss}
-          totalProfitLossPercent={totalProfitLossPercent}
-        />
-
+        {/* User Guide Section - Moved BEFORE statistics */}
         <div className="portfolio-guide">
-          <details className="guide-details">
+          <details className="guide-details" open>
             <summary className="guide-summary"> 📖 Understanding Your Portfolio</summary>
             <div className="guide-content">
               <div className="guide-section">
@@ -257,48 +262,69 @@ export default function PortfolioPage() {
                   <li>This is the money you can actually USE for savings goals and investment stories</li>
                   <li>When you sell stocks, this amount increases</li>
                   <li>When you buy stocks or add to goals, this amount decreases</li>
+                  <li><strong>Cash is real money</strong> - you can withdraw it to your goals anytime</li>
                 </ul>
               </div>
               
               <div className="guide-section">
                 <h4>📊 Understanding Your Stock Value</h4>
                 <ul>
-                  <li><strong>Current Stock Value:</strong> What your stocks are worth right now</li>
-                  <li><strong>Total Cost:</strong> What you originally paid for your stocks</li>
+                  <li><strong>Current Stock Value:</strong> What your stocks are worth right now based on live market prices</li>
+                  <li><strong>Total Cost:</strong> What you originally paid for your stocks (your investment basis)</li>
                   <li><strong>Total P&L:</strong> Your profit or loss = Current Value - Total Cost</li>
+                  <li><span className="positive-text">Green numbers</span> mean you're in profit</li>
+                  <li><span className="negative-text">Red numbers</span> mean you're at a loss</li>
+                </ul>
+              </div>
+
+              <div className="guide-section">
+                <h4>📈 Understanding Profit & Loss (P&L)</h4>
+                <ul>
+                  <li><strong>Unrealized P&L:</strong> Paper profit/loss on stocks you still own - <span className="warning-text">not real until you sell!</span></li>
+                  <li><strong>Realized P&L:</strong> Actual profit/loss from stocks you've already sold - <span className="success-text">this is real money!</span></li>
+                  <li>The <strong>Change</strong> column shows how each stock is performing today</li>
+                </ul>
+              </div>
+
+              <div className="guide-section">
+                <h4>💡 Pro Tips</h4>
+                <ul>
+                  <li>🔍 Use the search bar to find specific stocks</li>
+                  <li>📂 Filter by category to see stocks from specific sectors</li>
+                  <li>📊 Sort by Value, Change, or Shares to organize your portfolio</li>
+                  <li>💰 Click <strong>Buy More</strong> to add to your position</li>
+                  <li>💸 Click <strong>Sell All</strong> or <strong>Sell Partial</strong> to take profits or cut losses</li>
+                  <li>📈 Stock prices update every 2 hours with real market data</li>
                 </ul>
               </div>
             </div>
           </details>
         </div>
 
-        <div className="holdings-toolbar">
-          <div className="holdings-search">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="11" cy="11" r="8"/>
-              <path d="m21 21-4.35-4.35"/>
-            </svg>
-            <input
-              type="text"
-              placeholder="Search by symbol or company name..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          
-          <select 
-            className="holdings-sort-select"
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-          >
-            <option value="">Sort By</option>
-            {SORT_OPTIONS.map(option => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
+        {/* Portfolio Statistics */}
+        <PortfolioStatistics
+          cashBalance={cashBalance}
+          holdingsValue={holdingsValue}
+          totalCost={totalCost}
+          totalProfitLoss={totalProfitLoss}
+          totalProfitLossPercent={totalProfitLossPercent}
+        />
+
+        <HoldingsFilterBar
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          categoryFilter={categoryFilter}
+          onCategoryChange={setCategoryFilter}
+          nameSort={nameSort}
+          onNameSortChange={setNameSort}
+          valueSort={valueSort}
+          onValueSortChange={setValueSort}
+          changeSort={changeSort}
+          onChangeSortChange={setChangeSort}
+          sharesSort={sharesSort}
+          onSharesSortChange={setSharesSort}
+          loading={pageLoading}
+        />
 
         <div className="holdings-section">
           <h2>Your Holdings ({filteredHoldings.length} {filteredHoldings.length === 1 ? 'stock' : 'stocks'})</h2>

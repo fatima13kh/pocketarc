@@ -1,8 +1,36 @@
-// src/components/investment/StockFilters.jsx
-import { useState } from 'react';
+// src/components/portfolio/HoldingsFilterBar.jsx
 
-const SECTORS = [
-  { value: '', label: 'All Sectors' },
+// Sort options for Name
+const NAME_SORT = [
+  { value: '', label: 'Sort By Name' },
+  { value: 'name_asc', label: 'A to Z' },
+  { value: 'name_desc', label: 'Z to A' },
+];
+
+// Sort options for Value
+const VALUE_SORT = [
+  { value: '', label: 'Sort By Value' },
+  { value: 'value_asc', label: 'Low to High' },
+  { value: 'value_desc', label: 'High to Low' },
+];
+
+// Sort options for Change (P&L)
+const CHANGE_SORT = [
+  { value: '', label: 'Sort By Change' },
+  { value: 'pl_asc', label: 'Low to High' },
+  { value: 'pl_desc', label: 'High to Low' },
+];
+
+// Sort options for Shares
+const SHARES_SORT = [
+  { value: '', label: 'Sort By Shares' },
+  { value: 'shares_asc', label: 'Low to High' },
+  { value: 'shares_desc', label: 'High to Low' },
+];
+
+// Categories for filter dropdown
+const CATEGORIES = [
+  { value: '', label: 'All Categories' },
   { value: 'Technology', label: 'Technology' },
   { value: 'Healthcare', label: 'Healthcare' },
   { value: 'Financial Services', label: 'Financial Services' },
@@ -16,39 +44,20 @@ const SECTORS = [
   { value: 'Energy', label: 'Energy' },
 ];
 
-// Sort options for Price
-const PRICE_SORT = [
-  { value: '', label: 'Sort By Price' },
-  { value: 'price_asc', label: 'Low to High' },
-  { value: 'price_desc', label: 'High to Low' },
-];
-
-// Sort options for Change
-const CHANGE_SORT = [
-  { value: '', label: 'Sort By Change' },
-  { value: 'change_asc', label: 'Low to High' },
-  { value: 'change_desc', label: 'High to Low' },
-];
-
-// Sort options for Name
-const NAME_SORT = [
-  { value: '', label: 'Sort By Name' },
-  { value: 'name_asc', label: 'A to Z' },
-  { value: 'name_desc', label: 'Z to A' },
-];
-
-export default function StockFilters({ 
+export default function HoldingsFilterBar({ 
   searchTerm, 
   onSearchChange, 
-  sectorFilter, 
-  onSectorChange,
-  priceSort,
-  onPriceSortChange,
-  changeSort,
-  onChangeSortChange,
+  categoryFilter,
+  onCategoryChange,
   nameSort,
   onNameSortChange,
-  loading
+  valueSort,
+  onValueSortChange,
+  changeSort,
+  onChangeSortChange,
+  sharesSort,
+  onSharesSortChange,
+  loading 
 }) {
   return (
     <div className="stories-toolbar">
@@ -60,7 +69,7 @@ export default function StockFilters({
             <path d="m21 21-4.35-4.35"/>
           </svg>
           <input
-            placeholder="Search stocks by symbol or company name..."
+            placeholder="Search by symbol or company name..."
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
             disabled={loading}
@@ -72,13 +81,13 @@ export default function StockFilters({
       <div className="stories-toolbar-row">
         <select
           className="stories-select"
-          value={sectorFilter}
-          onChange={(e) => onSectorChange(e.target.value)}
+          value={categoryFilter}
+          onChange={(e) => onCategoryChange(e.target.value)}
           disabled={loading}
         >
-          {SECTORS.map(sector => (
-            <option key={sector.value} value={sector.value}>
-              {sector.label}
+          {CATEGORIES.map(category => (
+            <option key={category.value} value={category.value}>
+              {category.label}
             </option>
           ))}
         </select>
@@ -87,14 +96,30 @@ export default function StockFilters({
       {/* Sort row */}
       <div className="stories-sort-row">
         <div className="sort-group">
-          <label className="sort-label">Price:</label>
+          <label className="sort-label">Name:</label>
           <select
             className="stories-select stories-select-sm"
-            value={priceSort}
-            onChange={(e) => onPriceSortChange(e.target.value)}
+            value={nameSort}
+            onChange={(e) => onNameSortChange(e.target.value)}
             disabled={loading}
           >
-            {PRICE_SORT.map(option => (
+            {NAME_SORT.map(option => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="sort-group">
+          <label className="sort-label">Value:</label>
+          <select
+            className="stories-select stories-select-sm"
+            value={valueSort}
+            onChange={(e) => onValueSortChange(e.target.value)}
+            disabled={loading}
+          >
+            {VALUE_SORT.map(option => (
               <option key={option.value} value={option.value}>
                 {option.label}
               </option>
@@ -119,14 +144,14 @@ export default function StockFilters({
         </div>
 
         <div className="sort-group">
-          <label className="sort-label">Name:</label>
+          <label className="sort-label">Shares:</label>
           <select
             className="stories-select stories-select-sm"
-            value={nameSort}
-            onChange={(e) => onNameSortChange(e.target.value)}
+            value={sharesSort}
+            onChange={(e) => onSharesSortChange(e.target.value)}
             disabled={loading}
           >
-            {NAME_SORT.map(option => (
+            {SHARES_SORT.map(option => (
               <option key={option.value} value={option.value}>
                 {option.label}
               </option>
