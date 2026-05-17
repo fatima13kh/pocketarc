@@ -1,4 +1,4 @@
-// src/components/dashboard/LineChartComponent.jsx
+// src/components/dashboard/UserLineChartComponent.jsx
 import React from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
@@ -18,7 +18,7 @@ const CustomTooltip = ({ active, payload, label, valuePrefix = '', valueSuffix =
   return null;
 };
 
-export default function LineChartComponent({ 
+export default function UserLineChartComponent({ 
   data, 
   lines, 
   xKey = 'date',

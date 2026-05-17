@@ -1,5 +1,5 @@
 // src/pages/AdminDashboard.jsx
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useDashboard } from '../context/DashboardContext';
 import Navbar from '../components/layout/Navbar';
 import PageBanner from '../components/layout/PageBanner';
@@ -7,18 +7,48 @@ import Footer from '../components/layout/Footer';
 import Spinner from '../components/common/Spinner';
 import Alert from '../components/common/Alert';
 import StatCard from '../components/dashboard/StatCard';
-import LineChartComponent from '../components/dashboard/LineChartComponent';
-import BarChartComponent from '../components/dashboard/BarChartComponent';
-import PieChartComponent from '../components/dashboard/PieChartComponent';
 
 export default function AdminDashboard() {
-  const { adminDashboard, loading, error, loadDashboard } = useDashboard();
+  const { adminDashboard, loading, error, refreshDashboard } = useDashboard();
+  const isFirstRender = useRef(true);
 
+  // Refresh when component mounts (coming from login or navigation)
   useEffect(() => {
-    loadDashboard();
-  }, []);
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      refreshDashboard();
+    }
+  }, [refreshDashboard]);
 
-  if (loading) {
+  // Refresh when page becomes visible again (after coming back from another page)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        refreshDashboard();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [refreshDashboard]);
+
+  // Refresh when the page is focused (clicking on tab)
+  useEffect(() => {
+    const handleFocus = () => {
+      refreshDashboard();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [refreshDashboard]);
+
+  if (loading && !adminDashboard) {
     return (
       <div className="page-wrapper">
         <Navbar />
@@ -48,65 +78,26 @@ export default function AdminDashboard() {
 
   const {
     totalUsers,
-    verifiedUsers,
-    unverifiedUsers,
-    adminUsers,
     usersJoinedThisMonth,
     totalCashInSystem,
     totalInvestments,
     totalSavings,
-    totalNetWorthSystem,
-    totalStories,
-    publishedStories,
-    draftStories,
-    pendingReviewStories,
-    totalAiGeneratedStories,
-    totalAdminCreatedStories,
     totalTransactions,
     totalBuyTransactions,
     totalSellTransactions,
     totalStoriesPlayed,
+    totalStoriesUnplayed,
     totalGoalsCreated,
-    userRegistrations,
-    systemGrowth,
+    totalGoalsReached,
     popularStocks,
-    storyPerformance,
-    activityTimeline
+    storyPerformance
   } = adminDashboard;
 
-  // Prepare chart data
-  const userRegistrationData = userRegistrations?.map(point => ({
-    date: point.date,
-    Registrations: point.registrations,
-    Verified: point.verified
-  })) || [];
+  // Top 5 most played stories
+  const topStories = storyPerformance?.slice(0, 5) || [];
 
-  const systemGrowthData = systemGrowth?.map(point => ({
-    date: point.date,
-    'Net Worth': point.totalNetWorth,
-    'Investments': point.totalInvestments,
-    'Cash': point.totalCash
-  })) || [];
-
-  const stocksData = popularStocks?.map(stock => ({
-    name: stock.symbol,
-    value: stock.totalValue,
-    users: stock.userCount,
-    avgHolding: stock.averageHolding
-  })) || [];
-
-  const storiesData = storyPerformance?.map(story => ({
-    name: story.title,
-    plays: story.playsCount,
-    difficulty: story.difficulty
-  })) || [];
-
-  const timelineData = activityTimeline?.map(point => ({
-    date: point.date,
-    Transactions: point.transactions,
-    'Stories Played': point.storiesPlayed,
-    'Goals Created': point.goalsCreated
-  })) || [];
+  // Top 5 popular stocks
+  const topStocks = popularStocks?.slice(0, 5) || [];
 
   return (
     <div className="page-wrapper">
@@ -118,43 +109,26 @@ export default function AdminDashboard() {
           <p className="welcome-text">System Overview & Analytics</p>
         </div>
 
-        {/* User Statistics */}
+        {/* Row 1: User Statistics */}
         <div className="dashboard-section">
           <h2 className="section-title">👥 User Statistics</h2>
           <div className="dashboard-stats-grid">
             <StatCard title="Total Users" value={totalUsers} icon="👥" color="primary" />
-            <StatCard title="Verified Users" value={verifiedUsers} icon="✅" color="success" />
-            <StatCard title="Unverified Users" value={unverifiedUsers} icon="⏳" color="warning" />
-            <StatCard title="Admin Users" value={adminUsers} icon="👑" color="accent" />
             <StatCard title="New Users (30d)" value={usersJoinedThisMonth} icon="📈" color="info" />
           </div>
         </div>
 
-        {/* Financial Statistics */}
+        {/* Row 2: Financial Statistics */}
         <div className="dashboard-section">
           <h2 className="section-title">💰 Financial Statistics</h2>
           <div className="dashboard-stats-grid">
-            <StatCard title="Total Cash in System" value={totalCashInSystem} icon="💵" color="cash" />
-            <StatCard title="Total Investments" value={totalInvestments} icon="📊" color="investments" />
-            <StatCard title="Total Savings" value={totalSavings} icon="🎯" color="goals" />
-            <StatCard title="Total Net Worth" value={totalNetWorthSystem} icon="💰" color="networth" />
+            <StatCard title="Total Cash in System (BHD)" value={totalCashInSystem} icon="💵" color="cash" />
+            <StatCard title="Total Investments (BHD)" value={totalInvestments} icon="📊" color="investments" />
+            <StatCard title="Total Savings (BHD)" value={totalSavings} icon="🎯" color="goals" />
           </div>
         </div>
 
-        {/* Content Statistics */}
-        <div className="dashboard-section">
-          <h2 className="section-title">📚 Content Statistics</h2>
-          <div className="dashboard-stats-grid">
-            <StatCard title="Total Stories" value={totalStories} icon="📖" color="primary" />
-            <StatCard title="Published" value={publishedStories} icon="✅" color="success" />
-            <StatCard title="Draft" value={draftStories} icon="📝" color="warning" />
-            <StatCard title="Pending Review" value={pendingReviewStories} icon="⏳" color="info" />
-            <StatCard title="AI Generated" value={totalAiGeneratedStories} icon="🤖" color="accent" />
-            <StatCard title="Admin Created" value={totalAdminCreatedStories} icon="👨‍💼" color="primary" />
-          </div>
-        </div>
-
-        {/* Activity Statistics */}
+        {/* Row 3: Activity Statistics */}
         <div className="dashboard-section">
           <h2 className="section-title">⚡ Activity Statistics</h2>
           <div className="dashboard-stats-grid">
@@ -162,72 +136,61 @@ export default function AdminDashboard() {
             <StatCard title="Buy Transactions" value={totalBuyTransactions} icon="📈" color="success" />
             <StatCard title="Sell Transactions" value={totalSellTransactions} icon="📉" color="error" />
             <StatCard title="Stories Played" value={totalStoriesPlayed} icon="🎮" color="info" />
+            <StatCard title="Stories Unplayed" value={totalStoriesUnplayed || 0} icon="📖" color="warning" />
             <StatCard title="Goals Created" value={totalGoalsCreated} icon="🎯" color="warning" />
+            <StatCard title="Goals Reached" value={totalGoalsReached || 0} icon="🏆" color="success" />
           </div>
         </div>
 
-        {/* Charts Section */}
-        <div className="dashboard-charts-row">
-          <LineChartComponent 
-            data={userRegistrationData}
-            lines={[
-              { dataKey: 'Registrations', name: 'Registrations', color: '#2d7a4f' },
-              { dataKey: 'Verified', name: 'Verified', color: '#0f766e' }
-            ]}
-            title="User Registrations (Last 30 Days)"
-            valuePrefix=""
-            valueSuffix=" users"
-          />
-          <LineChartComponent 
-            data={systemGrowthData}
-            lines={[
-              { dataKey: 'Net Worth', name: 'Net Worth', color: '#2d7a4f' },
-              { dataKey: 'Investments', name: 'Investments', color: '#f59e0b' },
-              { dataKey: 'Cash', name: 'Cash', color: '#0f766e' }
-            ]}
-            title="System Growth (Last 30 Days)"
-            valuePrefix=""
-            valueSuffix=" BHD"
-          />
-        </div>
+        {/* Row 4: Most Played Stories & Most Popular Stocks - Side by side */}
+        <div className="dashboard-two-columns">
+          {/* Most Played Stories */}
+          <div className="recent-card">
+            <h3>📚 Most Played Stories</h3>
+            <div className="recent-list">
+              {topStories.length > 0 ? (
+                topStories.map((story, index) => (
+                  <div key={story.id || index} className="recent-item">
+                    <div className="recent-info">
+                      <span className="recent-title">{story.title?.length > 30 ? story.title.substring(0, 30) + '...' : story.title}</span>
+                    </div>
+                    <div className="recent-amount">{story.playsCount} plays</div>
+                  </div>
+                ))
+              ) : (
+                <div className="recent-empty">No stories played yet</div>
+              )}
+            </div>
+          </div>
 
-        <div className="dashboard-charts-row">
-          <BarChartComponent 
-            data={stocksData}
-            bars={[
-              { dataKey: 'value', name: 'Total Value', color: '#2d7a4f' }
-            ]}
-            xKey="name"
-            title="Most Popular Stocks"
-            valuePrefix=""
-            valueSuffix=" BHD"
-            layout="vertical"
-          />
-          <BarChartComponent 
-            data={storiesData}
-            bars={[
-              { dataKey: 'plays', name: 'Plays', color: '#f59e0b' }
-            ]}
-            xKey="name"
-            title="Most Played Stories"
-            valuePrefix=""
-            valueSuffix=" plays"
-            layout="vertical"
-          />
-        </div>
-
-        <div className="dashboard-charts-row">
-          <LineChartComponent 
-            data={timelineData}
-            lines={[
-              { dataKey: 'Transactions', name: 'Transactions', color: '#2d7a4f' },
-              { dataKey: 'Stories Played', name: 'Stories Played', color: '#f59e0b' },
-              { dataKey: 'Goals Created', name: 'Goals Created', color: '#0f766e' }
-            ]}
-            title="Activity Timeline (Last 30 Days)"
-            valuePrefix=""
-            valueSuffix=""
-          />
+          {/* Most Popular Stocks */}
+          <div className="recent-card">
+            <h3>📈 Most Popular Stocks</h3>
+            <div className="recent-list">
+              {topStocks.length > 0 ? (
+                topStocks.map((stock, index) => {
+                  const isPositive = (stock.changePercent || 0) >= 0;
+                  const price = stock.currentPriceBhd || 0;
+                  const changePercent = stock.changePercent || 0;
+                  
+                  return (
+                    <div key={stock.symbol} className="recent-item">
+                      <div className="recent-info">
+                        <span className="recent-symbol">{stock.symbol}</span>
+                        <span className="recent-title">{stock.companyName?.length > 25 ? stock.companyName.substring(0, 25) + '...' : stock.companyName}</span>
+                      </div>
+                      <div className="recent-amount">{price.toLocaleString()} BHD</div>
+                      <div className={`recent-change ${isPositive ? 'positive' : 'negative'}`}>
+                        {isPositive ? '↑' : '↓'} {Math.abs(changePercent).toFixed(2)}%
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="recent-empty">No stocks data available</div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 

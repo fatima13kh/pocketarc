@@ -7790,3 +7790,693 @@ details[open] .guide-summary::before {
     text-align: left;
   }
 }
+
+/* ============================================
+   DASHBOARD PAGE STYLES
+   ============================================ */
+
+/* Dashboard Container */
+.dashboard-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 32px 24px;
+  width: 100%;
+}
+
+.dashboard-welcome {
+  margin-bottom: 32px;
+}
+
+.welcome-text {
+  font-size: 16px;
+  color: var(--muted);
+}
+
+/* Stats Grid - 5 cards in one line */
+.dashboard-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 20px;
+  margin-bottom: 32px;
+}
+
+/* Full width chart row */
+.dashboard-full-width {
+  margin-bottom: 32px;
+}
+
+/* Two Columns Layout for side by side graphs */
+.dashboard-two-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+/* Chart containers */
+.dashboard-chart {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  height: 100%;
+}
+
+.dashboard-chart h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  font-family: var(--sans);
+  color: var(--text-h);
+}
+
+/* Goals Progress Section */
+.dashboard-goals-section {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  height: 100%;
+}
+
+.goals-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.dashboard-goals-section h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+  font-family: var(--sans);
+  color: var(--text-h);
+}
+
+.completed-goals-badge {
+  font-size: 11px;
+  padding: 4px 10px;
+  background: rgba(45, 122, 79, 0.1);
+  color: var(--success);
+  border-radius: 20px;
+  font-weight: 500;
+}
+
+.goals-progress-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.goal-progress-item {
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.goal-progress-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.goal-progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.goal-name {
+  font-weight: 600;
+  color: var(--text-h);
+  font-size: 13px;
+}
+
+.goal-amounts {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.goal-progress-bar-container {
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.goal-progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--success), #4caf50);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.goal-progress-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.goal-progress-percent {
+  color: var(--success);
+  font-weight: 600;
+}
+
+.goal-remaining {
+  color: var(--muted);
+}
+
+.no-active-goals-message {
+  text-align: center;
+  padding: 30px 16px;
+  color: var(--muted);
+}
+
+.no-active-goals-message p {
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
+.no-active-goals-message .sub-message {
+  font-size: 11px;
+}
+
+/* Recent Cards */
+.recent-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  height: 100%;
+}
+
+.recent-card h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  font-family: var(--sans);
+  color: var(--text-h);
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.recent-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.recent-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+
+.recent-item:last-child {
+  border-bottom: none;
+}
+
+.recent-info {
+  flex: 1;
+}
+
+.recent-symbol {
+  font-weight: 700;
+  color: var(--text-h);
+  margin-right: 8px;
+}
+
+.recent-type {
+  font-size: 11px;
+  color: var(--muted);
+  margin-right: 8px;
+}
+
+.recent-shares,
+.recent-title {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.recent-amount {
+  font-weight: 600;
+  color: var(--text-h);
+  margin: 0 12px;
+  min-width: 80px;
+  text-align: right;
+}
+
+.recent-amount.positive {
+  color: var(--success);
+}
+
+.recent-date {
+  font-size: 11px;
+  color: var(--muted);
+  min-width: 85px;
+  text-align: right;
+}
+
+.recent-empty {
+  text-align: center;
+  padding: 40px 16px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* Chart Tooltip */
+.dashboard-tooltip {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  box-shadow: var(--shadow-md);
+  min-width: 150px;
+}
+
+.dashboard-tooltip .tooltip-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-h);
+  margin-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 4px;
+}
+
+.dashboard-tooltip .tooltip-value {
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.dashboard-tooltip .tooltip-percent {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+/* Chart Empty State */
+.chart-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* Stat Card Suffix */
+.stat-card-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-h);
+  margin-bottom: 4px;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.stat-card-suffix {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+/* Tablet - 1024px and below */
+@media (max-width: 1024px) {
+  .dashboard-stats-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  
+  .dashboard-two-columns {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+/* Mobile - 768px and below */
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding: 20px 16px;
+  }
+  
+  .dashboard-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  
+  .stat-card-value {
+    font-size: 22px;
+  }
+  
+  .stat-card-suffix {
+    font-size: 12px;
+  }
+  
+  .goal-progress-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .goal-progress-footer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .recent-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  
+  .recent-amount {
+    margin: 0;
+    text-align: left;
+  }
+  
+  .recent-date {
+    text-align: left;
+  }
+}
+
+/* Small Mobile - 480px and below */
+@media (max-width: 480px) {
+  .dashboard-stats-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .dashboard-two-columns {
+    gap: 16px;
+  }
+  
+  .dashboard-chart {
+    padding: 16px;
+  }
+  
+  .recent-card {
+    padding: 16px;
+  }
+  
+  .dashboard-goals-section {
+    padding: 16px;
+  }
+  
+  .stat-card-value {
+    font-size: 20px;
+  }
+  
+  .goal-name {
+    font-size: 12px;
+  }
+  
+  .goal-amounts {
+    font-size: 10px;
+  }
+}
+
+/* Goals Progress Section - Fix spacing */
+.dashboard-goals-section {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-bottom: 32px;
+}
+
+.goals-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--border);
+}
+
+.dashboard-goals-section h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+  font-family: var(--sans);
+  color: var(--text-h);
+}
+
+.completed-goals-badge {
+  font-size: 12px;
+  padding: 6px 14px;
+  background: rgba(45, 122, 79, 0.1);
+  color: var(--success);
+  border-radius: 20px;
+  font-weight: 500;
+}
+
+.goals-progress-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.goal-progress-item {
+  padding: 16px;
+  background: var(--bg);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  transition: all 0.2s;
+}
+
+.goal-progress-item:hover {
+  box-shadow: var(--shadow-sm);
+}
+
+.goal-progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.goal-name {
+  font-weight: 600;
+  color: var(--text-h);
+  font-size: 15px;
+}
+
+.goal-amounts {
+  font-size: 13px;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.goal-progress-bar-container {
+  height: 8px;
+  background: var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 12px 0;
+}
+
+.goal-progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--success), #4caf50);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.goal-progress-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+  font-size: 13px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.goal-progress-percent {
+  color: var(--success);
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.goal-remaining {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* Recent Cards - Fix spacing */
+.recent-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-bottom: 32px;
+}
+
+.recent-card h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  font-family: var(--sans);
+  color: var(--text-h);
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--border);
+}
+
+.recent-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.recent-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: var(--bg);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  transition: all 0.2s;
+}
+
+.recent-item:hover {
+  transform: translateX(4px);
+  box-shadow: var(--shadow-sm);
+}
+
+.recent-info {
+  flex: 1;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.recent-symbol {
+  font-weight: 700;
+  color: var(--text-h);
+  font-size: 14px;
+  background: var(--bg-card);
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+.recent-type {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.recent-shares,
+.recent-title {
+  font-size: 12px;
+  color: var(--muted);
+  font-family: var(--mono);
+}
+
+.recent-amount {
+  font-weight: 700;
+  color: var(--text-h);
+  margin: 0 16px;
+  min-width: 100px;
+  text-align: right;
+  font-size: 15px;
+}
+
+.recent-amount.positive {
+  color: var(--success);
+}
+
+.recent-date {
+  font-size: 12px;
+  color: var(--muted);
+  min-width: 100px;
+  text-align: right;
+  font-family: var(--mono);
+}
+
+.recent-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--muted);
+  font-size: 14px;
+  background: var(--bg);
+  border-radius: var(--radius-md);
+}
+
+/* Two columns layout for Recent section */
+.dashboard-recent-wrapper {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-top: 32px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .dashboard-recent-wrapper {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .goal-progress-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .goal-progress-footer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .recent-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .recent-amount {
+    margin: 0;
+    text-align: left;
+  }
+  
+  .recent-date {
+    text-align: left;
+  }
+  
+  .recent-info {
+    width: 100%;
+  }
+}
+
+/* Add to your existing CSS if not already there */
+.dashboard-full-width {
+  overflow: hidden;
+  width: 100%;
+}
+
+.dashboard-chart {
+  overflow: hidden;
+  width: 100%;
+}

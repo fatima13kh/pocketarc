@@ -6,12 +6,50 @@ import Footer from '../components/layout/Footer';
 import Spinner from '../components/common/Spinner';
 import Alert from '../components/common/Alert';
 import StatCard from '../components/dashboard/StatCard';
-import LineChartComponent from '../components/dashboard/LineChartComponent';
+import UserLineChartComponent from '../components/dashboard/UserLineChartComponent';
 import PieChartComponent from '../components/dashboard/PieChartComponent';
 import BarChartComponent from '../components/dashboard/BarChartComponent';
+import { useEffect, useRef } from 'react';
 
 export default function UserDashboard() {
-  const { userDashboard, loading, error } = useDashboard();
+  const { userDashboard, loading, error, refreshDashboard } = useDashboard();
+  const isFirstRender = useRef(true);
+
+  // Refresh when component mounts (coming from login or navigation)
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      refreshDashboard();
+    }
+  }, [refreshDashboard]);
+
+  // Refresh when page becomes visible again (after coming back from another page)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        refreshDashboard();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [refreshDashboard]);
+
+  // Refresh when the page is focused (clicking on tab)
+  useEffect(() => {
+    const handleFocus = () => {
+      refreshDashboard();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [refreshDashboard]);
 
   if (loading && !userDashboard) {
     return (
@@ -47,6 +85,7 @@ export default function UserDashboard() {
     totalInvestments,
     totalSharesOwned,
     totalSavingsGoals,
+    totalStoryRewards,
     netWorthHistory,
     portfolioAllocation,
     goalsProgress,
@@ -55,11 +94,12 @@ export default function UserDashboard() {
     recentStories
   } = userDashboard;
 
-  // Prepare data for charts
+  // Prepare data for chart - 3 lines: Cash Balance, Investments, Stories Earned
   const netWorthData = netWorthHistory?.map(point => ({
     date: point.date,
     'Cash Balance': point.cashBalance,
-    'Investments': point.investmentsValue
+    'Investments': point.investmentsValue,
+    'Stories Earned': point.storyRewards || 0
   })) || [];
 
   const monthlyData = monthlyActivity?.map(activity => ({
@@ -75,11 +115,11 @@ export default function UserDashboard() {
     sector: allocation.sector
   })) || [];
 
-  // Get goals that are NOT completed (progress < 100%) and sort by progress (highest first)
+  // Get goals that are NOT completed (progress < 100%)
   const activeGoals = (goalsProgress || [])
     .filter(goal => goal.progressPercent < 100)
     .sort((a, b) => b.progressPercent - a.progressPercent)
-    .slice(0, 4); // Show top 4 goals
+    .slice(0, 4);
 
   const completedGoals = (goalsProgress || []).filter(goal => goal.progressPercent >= 100).length;
 
@@ -93,7 +133,7 @@ export default function UserDashboard() {
           <p className="welcome-text">Here's an overview of your financial journey</p>
         </div>
 
-        {/* Key Metrics - 4 cards */}
+        {/* Row 1: Main Financial Stats - 5 cards */}
         <div className="dashboard-stats-grid">
           <StatCard 
             title="Cash Balance (BHD)" 
@@ -119,20 +159,31 @@ export default function UserDashboard() {
             icon="💰" 
             color="goals"
           />
+          <StatCard 
+            title="Stories Earned (BHD)" 
+            value={totalStoryRewards || 0} 
+            icon="📖" 
+            color="profit"
+          />
         </div>
 
-        {/* First Row: Cash & Investments Growth + Portfolio Allocation - Side by Side */}
-        <div className="dashboard-two-columns">
-          <LineChartComponent 
+        {/* Row 2: Growth Chart - 3 lines: Cash, Investments, Stories Earned */}
+        <div className="dashboard-full-width">
+          <UserLineChartComponent 
             data={netWorthData}
             lines={[
               { dataKey: 'Cash Balance', name: 'Cash Balance', color: '#0f766e' },
-              { dataKey: 'Investments', name: 'Investments', color: '#f59e0b' }
+              { dataKey: 'Investments', name: 'Investments', color: '#f59e0b' },
+              { dataKey: 'Stories Earned', name: 'Stories Earned', color: '#2d7a4f' }
             ]}
-            title="Cash & Investments Growth"
+            title="Financial Growth (Cash + Investments + Stories)"
             valuePrefix=""
             valueSuffix=" BHD"
           />
+        </div>
+
+        {/* Row 3: Portfolio Allocation + Monthly Activity */}
+        <div className="dashboard-two-columns">
           <PieChartComponent 
             data={portfolioData}
             title="Portfolio by Sector"
@@ -140,57 +191,6 @@ export default function UserDashboard() {
             valueSuffix=" BHD"
             nameKey="name"
           />
-        </div>
-
-        {/* Second Row: Goals Progress + Monthly Activity - Side by Side */}
-        <div className="dashboard-two-columns">
-          {/* Goals Progress Section */}
-          <div className="dashboard-goals-section">
-            <div className="goals-section-header">
-              <h3>Goals Progress</h3>
-              {completedGoals > 0 && (
-                <span className="completed-goals-badge">
-                  ✅ {completedGoals} completed
-                </span>
-              )}
-            </div>
-            <div className="goals-progress-list">
-              {activeGoals.length > 0 ? (
-                activeGoals.map((goal, index) => {
-                  const remaining = goal.targetAmount - goal.currentAmount;
-                  return (
-                    <div key={index} className="goal-progress-item">
-                      <div className="goal-progress-header">
-                        <span className="goal-name" title={goal.goalName}>
-                          {goal.goalName.length > 20 ? goal.goalName.substring(0, 20) + '...' : goal.goalName}
-                        </span>
-                        <span className="goal-amounts">
-                          {goal.currentAmount.toLocaleString()} / {goal.targetAmount.toLocaleString()} BHD
-                        </span>
-                      </div>
-                      <div className="goal-progress-bar-container">
-                        <div 
-                          className="goal-progress-bar-fill" 
-                          style={{ width: `${goal.progressPercent}%` }}
-                        />
-                      </div>
-                      <div className="goal-progress-footer">
-                        <span className="goal-progress-percent">{goal.progressPercent}%</span>
-                        <span className="goal-remaining">🚀 {remaining.toLocaleString()} BHD left</span>
-                      </div>
-                    </div>
-                  );
-                })
-              ) : (
-                <div className="no-active-goals-message">
-                  <p>🎉 All goals completed!</p>
-                  <p className="sub-message">Create new goals to save more</p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Monthly Activity Chart */}
           <BarChartComponent 
             data={monthlyData}
             bars={[
@@ -205,7 +205,53 @@ export default function UserDashboard() {
           />
         </div>
 
-        {/* Third Row: Recent Activity - Side by Side */}
+        {/* Row 4: Goals Progress */}
+        <div className="dashboard-goals-section">
+          <div className="goals-section-header">
+            <h3>Goals Progress</h3>
+            {completedGoals > 0 && (
+              <span className="completed-goals-badge">
+                ✅ {completedGoals} completed
+              </span>
+            )}
+          </div>
+          <div className="goals-progress-list">
+            {activeGoals.length > 0 ? (
+              activeGoals.map((goal, index) => {
+                const remaining = goal.targetAmount - goal.currentAmount;
+                return (
+                  <div key={index} className="goal-progress-item">
+                    <div className="goal-progress-header">
+                      <span className="goal-name" title={goal.goalName}>
+                        {goal.goalName.length > 20 ? goal.goalName.substring(0, 20) + '...' : goal.goalName}
+                      </span>
+                      <span className="goal-amounts">
+                        {goal.currentAmount.toLocaleString()} / {goal.targetAmount.toLocaleString()} BHD
+                      </span>
+                    </div>
+                    <div className="goal-progress-bar-container">
+                      <div 
+                        className="goal-progress-bar-fill" 
+                        style={{ width: `${goal.progressPercent}%` }}
+                      />
+                    </div>
+                    <div className="goal-progress-footer">
+                      <span className="goal-progress-percent">{goal.progressPercent}%</span>
+                      <span className="goal-remaining">🚀 {remaining.toLocaleString()} BHD left</span>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="no-active-goals-message">
+                <p>🎉 All goals completed!</p>
+                <p className="sub-message">Create new goals to save more</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Row 5: Recent Activity */}
         <div className="dashboard-two-columns">
           <div className="recent-card">
             <h3>Recent Transactions</h3>

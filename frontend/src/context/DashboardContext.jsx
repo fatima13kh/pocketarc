@@ -1,5 +1,5 @@
 // src/context/DashboardContext.jsx
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import { dashboardApi } from '../api/dashboardApi';
 import { useAuth } from './AuthContext';
 
@@ -11,11 +11,13 @@ export function DashboardProvider({ children }) {
   const [adminDashboard, setAdminDashboard] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [loaded, setLoaded] = useState(false);
+  const [lastRefresh, setLastRefresh] = useState(null);
+  
+  // Use ref to track if initial load has happened
+  const initialLoadDone = useRef(false);
 
   const loadDashboard = useCallback(async (force = false) => {
-    // Skip if already loaded and not forcing refresh
-    if (loaded && !force) return;
+    if (!user) return;
     
     setLoading(true);
     setError('');
@@ -28,33 +30,54 @@ export function DashboardProvider({ children }) {
         setUserDashboard(res.data);
         setAdminDashboard(null);
       }
-      setLoaded(true);
+      setLastRefresh(new Date());
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to load dashboard');
     } finally {
       setLoading(false);
     }
-  }, [loaded]);
+  }, [user]);
 
-  // Only load once when user is authenticated and dashboard not loaded
+  // Auto-refresh when user changes or after updates
   useEffect(() => {
-    if (user && !loaded && !loading) {
+    if (user && !initialLoadDone.current) {
+      initialLoadDone.current = true;
       loadDashboard();
     }
-  }, [user, loaded, loading, loadDashboard]);
+  }, [user, loadDashboard]);
 
-  const refreshDashboard = useCallback(() => {
-    setLoaded(false);
-    loadDashboard(true);
+  // Function to force refresh from any component
+  const refreshDashboard = useCallback(async () => {
+    await loadDashboard(true);
   }, [loadDashboard]);
+
+  // Set up event listener for goal/investment/story updates
+  useEffect(() => {
+    const handleRefresh = () => {
+      refreshDashboard();
+    };
+
+    // Listen for custom events that might indicate data changes
+    window.addEventListener('goal-updated', handleRefresh);
+    window.addEventListener('investment-updated', handleRefresh);
+    window.addEventListener('story-updated', handleRefresh);
+    window.addEventListener('profile-updated', handleRefresh);
+
+    return () => {
+      window.removeEventListener('goal-updated', handleRefresh);
+      window.removeEventListener('investment-updated', handleRefresh);
+      window.removeEventListener('story-updated', handleRefresh);
+      window.removeEventListener('profile-updated', handleRefresh);
+    };
+  }, [refreshDashboard]);
 
   const value = {
     userDashboard,
     adminDashboard,
     loading,
     error,
-    loadDashboard,  // ADD THIS BACK
     refreshDashboard,
+    lastRefresh,
     isAdmin: !!adminDashboard,
   };
 
