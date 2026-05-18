@@ -1,15 +1,24 @@
+// src/context/GoalsContext.jsx
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import axiosClient from '../api/axiosClient';
+import { useAuth } from './AuthContext';
 
 const GoalsContext = createContext(null);
 
 export function GoalsProvider({ children }) {
+  const { user } = useAuth(); // Get user from auth context
   const [goals, setGoals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [cashBalance, setCashBalance] = useState(0);
 
   const loadGoals = useCallback(async () => {
+    // Only load goals if user is logged in AND verified
+    if (!user || !user.email) {
+      setLoading(false);
+      return;
+    }
+    
     setLoading(true);
     try {
       const [goalsRes, userRes] = await Promise.all([
@@ -20,12 +29,23 @@ export function GoalsProvider({ children }) {
       setCashBalance(userRes.data.cashBalance || 0);
       setError('');
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to load goals');
+      // Don't show error for 401/403 during initial load
+      if (err.response?.status !== 401 && err.response?.status !== 403) {
+        setError(err.response?.data?.error || 'Failed to load goals');
+      }
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user]);
 
+  // Only load when user exists
+  useEffect(() => {
+    if (user) {
+      loadGoals();
+    }
+  }, [user, loadGoals]);
+
+  // Rest of your code remains the same...
   const createGoal = useCallback(async (formData) => {
     try {
       const res = await axiosClient.post('/goals', formData);
@@ -66,10 +86,6 @@ export function GoalsProvider({ children }) {
     } catch (err) {
       return { success: false, error: err.response?.data?.error || 'Failed to delete goal' };
     }
-  }, [loadGoals]);
-
-  useEffect(() => {
-    loadGoals();
   }, [loadGoals]);
 
   const totalSaved = goals.reduce((sum, g) => sum + (g.currentAmount || 0), 0);

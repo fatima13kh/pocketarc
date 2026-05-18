@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { authApi } from '../api/authApi';
 import Layout from '../components/layout/Layout';
-import OtpInput from '../components/common/OtpInput';
 import Input from '../components/common/Input';
 import Button from '../components/common/Button';
 import Alert from '../components/common/Alert';
@@ -12,7 +11,6 @@ export default function ResetPasswordPage() {
   const location = useLocation();
   const email = location.state?.email;
 
-  const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errors, setErrors] = useState({});
@@ -25,7 +23,6 @@ export default function ResetPasswordPage() {
 
   const validate = () => {
     const e = {};
-    if (otp.join('').length < 6) e.otp = 'Please enter all 6 digits';
     if (!newPassword) e.newPassword = 'Password is required';
     else if (!/(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])/.test(newPassword))
       e.newPassword = 'Must include uppercase, number, and special character';
@@ -40,7 +37,7 @@ export default function ResetPasswordPage() {
 
     setLoading(true);
     try {
-      await authApi.resetPassword({ email, code: otp.join(''), newPassword });
+      await authApi.resetPassword({ email, newPassword });
       navigate('/login', { state: { message: 'Password reset successfully. Please log in.' } });
     } catch (err) {
       setApiError(err.response?.data?.error || 'Reset failed. Please try again.');
@@ -60,15 +57,12 @@ export default function ResetPasswordPage() {
           <h2 className="auth-card-title">Reset Password</h2>
 
           <p className="text-center text-muted" style={{ marginBottom: '24px', fontSize: '13px' }}>
-            Enter the code sent to your email and your new password.
+            Enter your new password below.
           </p>
 
           <Alert message={apiError} />
 
           <form onSubmit={handleSubmit}>
-            <OtpInput value={otp} onChange={setOtp} />
-            {errors.otp && <p className="form-error text-center">{errors.otp}</p>}
-
             <Input
               name="newPassword"
               type="password"

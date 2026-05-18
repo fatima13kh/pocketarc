@@ -7,6 +7,7 @@ import Footer from '../components/layout/Footer';
 import Spinner from '../components/common/Spinner';
 import Alert from '../components/common/Alert';
 import StatCard from '../components/dashboard/StatCard';
+import { FaUsers, FaUserPlus, FaMoneyBillWave, FaChartLine, FaBullseye, FaExchangeAlt, FaArrowUp, FaArrowDown, FaGamepad, FaBook, FaTarget, FaTrophy, FaBookOpen, FaChartBar } from 'react-icons/fa';
 
 export default function AdminDashboard() {
   const { adminDashboard, loading, error, refreshDashboard } = useDashboard();
@@ -105,40 +106,37 @@ export default function AdminDashboard() {
       <PageBanner title="Admin Dashboard" />
 
       <div className="dashboard-container">
-        <div className="dashboard-welcome">
-          <p className="welcome-text">System Overview & Analytics</p>
-        </div>
 
         {/* Row 1: User Statistics */}
         <div className="dashboard-section">
-          <h2 className="section-title">👥 User Statistics</h2>
+          <h2 className="section-title"><FaUsers /> User Statistics</h2>
           <div className="dashboard-stats-grid">
-            <StatCard title="Total Users" value={totalUsers} icon="👥" color="primary" />
-            <StatCard title="New Users (30d)" value={usersJoinedThisMonth} icon="📈" color="info" />
+            <StatCard title="Total Users" value={totalUsers} icon={<FaUsers />} color="primary" />
+            <StatCard title="New Users (30d)" value={usersJoinedThisMonth} icon={<FaUserPlus />} color="info" />
           </div>
         </div>
 
         {/* Row 2: Financial Statistics */}
         <div className="dashboard-section">
-          <h2 className="section-title">💰 Financial Statistics</h2>
+          <h2 className="section-title"><FaMoneyBillWave /> Financial Statistics</h2>
           <div className="dashboard-stats-grid">
-            <StatCard title="Total Cash in System (BHD)" value={totalCashInSystem} icon="💵" color="cash" />
-            <StatCard title="Total Investments (BHD)" value={totalInvestments} icon="📊" color="investments" />
-            <StatCard title="Total Savings (BHD)" value={totalSavings} icon="🎯" color="goals" />
+            <StatCard title="Total Cash in System (BHD)" value={totalCashInSystem} icon={<FaMoneyBillWave />} color="cash" />
+            <StatCard title="Total Investments (BHD)" value={totalInvestments} icon={<FaChartLine />} color="investments" />
+            <StatCard title="Total Savings (BHD)" value={totalSavings} icon={<FaBullseye />} color="goals" />
           </div>
         </div>
 
         {/* Row 3: Activity Statistics */}
         <div className="dashboard-section">
-          <h2 className="section-title">⚡ Activity Statistics</h2>
+          <h2 className="section-title"><FaExchangeAlt /> Activity Statistics</h2>
           <div className="dashboard-stats-grid">
-            <StatCard title="Total Transactions" value={totalTransactions} icon="🔄" color="primary" />
-            <StatCard title="Buy Transactions" value={totalBuyTransactions} icon="📈" color="success" />
-            <StatCard title="Sell Transactions" value={totalSellTransactions} icon="📉" color="error" />
-            <StatCard title="Stories Played" value={totalStoriesPlayed} icon="🎮" color="info" />
-            <StatCard title="Stories Unplayed" value={totalStoriesUnplayed || 0} icon="📖" color="warning" />
-            <StatCard title="Goals Created" value={totalGoalsCreated} icon="🎯" color="warning" />
-            <StatCard title="Goals Reached" value={totalGoalsReached || 0} icon="🏆" color="success" />
+            <StatCard title="Total Transactions" value={totalTransactions} icon={<FaExchangeAlt />} color="primary" />
+            <StatCard title="Buy Transactions" value={totalBuyTransactions} icon={<FaArrowUp />} color="success" />
+            <StatCard title="Sell Transactions" value={totalSellTransactions} icon={<FaArrowDown />} color="error" />
+            <StatCard title="Stories Played" value={totalStoriesPlayed} icon={<FaGamepad />} color="info" />
+            <StatCard title="Stories Unplayed" value={totalStoriesUnplayed || 0} icon={<FaBook />} color="warning" />
+            <StatCard title="Goals Created" value={totalGoalsCreated} icon={<FaTarget />} color="warning" />
+            <StatCard title="Goals Reached" value={totalGoalsReached || 0} icon={<FaTrophy />} color="success" />
           </div>
         </div>
 
@@ -146,7 +144,7 @@ export default function AdminDashboard() {
         <div className="dashboard-two-columns">
           {/* Most Played Stories */}
           <div className="recent-card">
-            <h3>📚 Most Played Stories</h3>
+            <h3><FaBookOpen /> Most Played Stories</h3>
             <div className="recent-list">
               {topStories.length > 0 ? (
                 topStories.map((story, index) => (
@@ -165,7 +163,7 @@ export default function AdminDashboard() {
 
           {/* Most Popular Stocks */}
           <div className="recent-card">
-            <h3>📈 Most Popular Stocks</h3>
+            <h3><FaChartBar /> Most Popular Stocks</h3>
             <div className="recent-list">
               {topStocks.length > 0 ? (
                 topStocks.map((stock, index) => {

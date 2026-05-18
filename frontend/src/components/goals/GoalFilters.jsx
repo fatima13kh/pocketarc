@@ -1,3 +1,4 @@
+// src/components/goals/GoalFilters.jsx
 import React from 'react';
 import Input from '../common/Input';
 
@@ -15,22 +16,25 @@ const CATEGORIES = [
   { value: 'OTHER', label: 'Other' },
 ];
 
-// Date Sort Options
+// Sort options for Date
 const DATE_SORT_OPTIONS = [
+  { value: '', label: 'Sort By Date' },
   { value: 'newest', label: 'Newest First' },
   { value: 'oldest', label: 'Oldest First' },
 ];
 
-// Progress Sort Options
+// Sort options for Progress
 const PROGRESS_SORT_OPTIONS = [
-  { value: 'progress_asc', label: 'Progress: Low to High' },
-  { value: 'progress_desc', label: 'Progress: High to Low' },
+  { value: '', label: 'Sort By Progress' },
+  { value: 'progress_asc', label: 'Low to High' },
+  { value: 'progress_desc', label: 'High to Low' },
 ];
 
-// Target Sort Options
+// Sort options for Target
 const TARGET_SORT_OPTIONS = [
-  { value: 'target_asc', label: 'Target: Low to High' },
-  { value: 'target_desc', label: 'Target: High to Low' },
+  { value: '', label: 'Sort By Target' },
+  { value: 'target_asc', label: 'Low to High' },
+  { value: 'target_desc', label: 'High to Low' },
 ];
 
 export default function GoalFilters({ 
@@ -46,24 +50,27 @@ export default function GoalFilters({
   onTargetSortChange
 }) {
   return (
-    <div className="goals-filters-container">
+    <div className="stories-toolbar">
       {/* Search Bar */}
-      <div className="goals-search-wrapper">
-        <Input
-          name="search"
-          type="text"
-          placeholder="Search goals..."
-          value={searchTerm}
-          onChange={(e) => onSearchChange(e.target.value)}
-          showClear
-        />
+      <div className="stories-toolbar-top">
+        <div className="stories-search">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" strokeWidth="2">
+            <circle cx="11" cy="11" r="8"/>
+            <path d="m21 21-4.35-4.35"/>
+          </svg>
+          <input
+            placeholder="Search goals..."
+            value={searchTerm}
+            onChange={(e) => onSearchChange(e.target.value)}
+          />
+        </div>
       </div>
 
-      {/* Filter Row - Category and Sort Dropdowns */}
-      <div className="goals-filter-row">
-        {/* Category Filter */}
+      {/* Filter row - Category dropdown */}
+      <div className="stories-toolbar-row">
         <select
-          className="goals-filter-select"
+          className="stories-select"
           value={categoryFilter}
           onChange={(e) => onCategoryChange(e.target.value)}
         >
@@ -71,42 +78,48 @@ export default function GoalFilters({
             <option key={cat.value} value={cat.value}>{cat.label}</option>
           ))}
         </select>
+      </div>
 
-        {/* Date Sort */}
-        <select
-          className="goals-filter-select"
-          value={dateSort}
-          onChange={(e) => onDateSortChange(e.target.value)}
-        >
-          <option value="">Sort By Date</option>
-          {DATE_SORT_OPTIONS.map(opt => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
-          ))}
-        </select>
+      {/* Sort row */}
+      <div className="stories-sort-row">
+        <div className="sort-group">
+          <label className="sort-label">Date:</label>
+          <select
+            className="stories-select stories-select-sm"
+            value={dateSort}
+            onChange={(e) => onDateSortChange(e.target.value)}
+          >
+            {DATE_SORT_OPTIONS.map(opt => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+        </div>
 
-        {/* Progress Sort */}
-        <select
-          className="goals-filter-select"
-          value={progressSort}
-          onChange={(e) => onProgressSortChange(e.target.value)}
-        >
-          <option value="">Sort By Progress</option>
-          {PROGRESS_SORT_OPTIONS.map(opt => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
-          ))}
-        </select>
+        <div className="sort-group">
+          <label className="sort-label">Progress:</label>
+          <select
+            className="stories-select stories-select-sm"
+            value={progressSort}
+            onChange={(e) => onProgressSortChange(e.target.value)}
+          >
+            {PROGRESS_SORT_OPTIONS.map(opt => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+        </div>
 
-        {/* Target Sort */}
-        <select
-          className="goals-filter-select"
-          value={targetSort}
-          onChange={(e) => onTargetSortChange(e.target.value)}
-        >
-          <option value="">Sort By Target</option>
-          {TARGET_SORT_OPTIONS.map(opt => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
-          ))}
-        </select>
+        <div className="sort-group">
+          <label className="sort-label">Target:</label>
+          <select
+            className="stories-select stories-select-sm"
+            value={targetSort}
+            onChange={(e) => onTargetSortChange(e.target.value)}
+          >
+            {TARGET_SORT_OPTIONS.map(opt => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+        </div>
       </div>
     </div>
   );

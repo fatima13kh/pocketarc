@@ -63,12 +63,11 @@ export default function AdminStoryViewPage() {
       <PageBanner title="View Story" />
 
       <div className="story-editor-content">
-        <div className="story-editor-card">
+        <div className="story-editor-card-wide">
           <div className="story-editor-header">
             <button className="story-play-back" onClick={() => navigate('/admin/stories')}>
               ← Back to Stories
             </button>
-            {/* Edit button removed */}
           </div>
 
           <div className="story-view-only">

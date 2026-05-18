@@ -44,25 +44,22 @@ export default function GenerateStoryPage() {
       <Navbar />
       <PageBanner title="Generate Story" />
 
-      <div style={{
-        flex: 1, display: 'flex',
-        alignItems: 'center', justifyContent: 'center', padding: '48px 24px',
-      }}>
-        <div className="generate-modal" style={{ position: 'static', background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+      <div className="auth-page">
+        <div className="auth-card-no-hover">
           <div className="generate-modal-header">
             <button className="generate-back-btn" onClick={() => navigate('/admin/stories')}>
               ← Back to Stories
             </button>
           </div>
 
-          <h2 className="generate-modal-title">Generate AI Story</h2>
+          <h2 className="auth-title">Generate AI Story</h2>
 
           <Alert message={error} />
 
           {/* Difficulty chips */}
           <div className="generate-section">
-            <label className="generate-label">Select Difficulty:</label>
-            <div className="filter-chips" style={{ justifyContent: 'center', marginBottom: '24px' }}>
+            <label className="auth-label">Select Difficulty:</label>
+            <div className="filter-chips" style={{ justifyContent: 'center', marginBottom: '24px', marginTop: '12px' }}>
               {DIFFICULTIES.map(d => (
                 <button
                   key={d}
@@ -77,10 +74,9 @@ export default function GenerateStoryPage() {
 
           {/* Category */}
           <div className="generate-section">
-            <label className="generate-label">Choose Category:</label>
+            <label className="auth-label">Choose Category:</label>
             <select
-              className="stories-select"
-              style={{ width: '100%', marginBottom: '24px' }}
+              className="auth-select"
               value={category}
               onChange={e => setCategory(e.target.value)}
             >
@@ -93,10 +89,10 @@ export default function GenerateStoryPage() {
             </select>
           </div>
 
-          {/* Number of Questions - Buttons only, no slider */}
+          {/* Number of Questions */}
           <div className="generate-section">
-            <label className="generate-label">Number of Questions:</label>
-            <div className="question-count-buttons" style={{ justifyContent: 'center', marginBottom: '16px' }}>
+            <label className="auth-label">Number of Questions:</label>
+            <div className="question-count-buttons" style={{ justifyContent: 'center', marginBottom: '16px', marginTop: '12px' }}>
               {QUESTION_COUNTS.map(num => (
                 <button
                   key={num}
@@ -114,9 +110,9 @@ export default function GenerateStoryPage() {
 
           {/* Generate Button */}
           <div style={{ display: 'flex', justifyContent: 'center', marginTop: '24px' }}>
-            <Button loading={loading} onClick={handleGenerate}>
-              Generate Story
-            </Button>
+            <button className="auth-btn" onClick={handleGenerate} disabled={loading}>
+              {loading ? 'Generating...' : 'Generate Story'}
+            </button>
           </div>
         </div>
       </div>

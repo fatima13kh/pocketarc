@@ -8480,3 +8480,731 @@ details[open] .guide-summary::before {
   overflow: hidden;
   width: 100%;
 }
+
+/* ============================================
+   NEW AUTH PAGE STYLES (Clean & Simple)
+   ============================================ */
+
+/* Auth page container - same as goals-container */
+.auth-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 32px 24px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 244px);
+}
+
+/* Auth card - same width as goals cards */
+.auth-card-new {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 40px;
+  width: 100%;
+  max-width: 560px;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.auth-card-new:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Auth title - same as goals section title */
+.auth-title {
+  font-size: 28px;
+  font-weight: 500;
+  font-family: var(--serif);
+  color: var(--text-h);
+  text-align: center;
+  margin-bottom: 32px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--border);
+}
+
+/* Back button - same as goals back button */
+.auth-back-btn-new {
+  background: none;
+  border: none;
+  font-size: 14px;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 24px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--sans);
+  transition: color 0.2s;
+}
+
+.auth-back-btn-new:hover {
+  color: var(--text-h);
+}
+
+/* Form groups - consistent spacing */
+.auth-form-group {
+  margin-bottom: 24px;
+}
+
+/* Labels - consistent with goals */
+.auth-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+}
+
+/* Input wrapper */
+.auth-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+/* Input fields - proper padding */
+.auth-input {
+  width: 100%;
+  padding: 14px 0;
+  padding-right: 60px;
+  border: none;
+  border-bottom: 1.5px solid var(--input-border);
+  background: transparent;
+  color: var(--text-h);
+  font-size: 16px;
+  line-height: 1.5;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.auth-input:focus {
+  border-bottom-color: var(--input-focus);
+}
+
+.auth-input.error {
+  border-bottom-color: var(--error);
+}
+
+.auth-input::placeholder {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+/* Clear button */
+.auth-clear-btn {
+  position: absolute;
+  right: 30px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 12px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.auth-clear-btn:hover {
+  color: var(--text-h);
+}
+
+/* Password toggle */
+.auth-password-toggle {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+}
+
+.auth-password-toggle:hover {
+  color: var(--text-h);
+}
+
+/* Error message */
+.auth-error {
+  font-size: 12px;
+  color: var(--error);
+  margin-top: 6px;
+  display: block;
+}
+
+/* Forgot password link */
+.auth-forgot-link {
+  text-align: right;
+  margin-top: -8px;
+  margin-bottom: 24px;
+}
+
+.auth-forgot-link a {
+  font-size: 12px;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.auth-forgot-link a:hover {
+  color: var(--text-h);
+  text-decoration: underline;
+}
+
+/* Buttons */
+.auth-btn {
+  width: 100%;
+  padding: 14px 28px;
+  font-size: 16px;
+  font-weight: 500;
+  font-family: var(--sans);
+  background: var(--accent);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-top: 8px;
+}
+
+.auth-btn:hover {
+  background: var(--accent-hover);
+}
+
+.auth-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Footer text */
+.auth-footer {
+  text-align: center;
+  font-size: 13px;
+  margin-top: 24px;
+  color: var(--text);
+}
+
+.auth-footer a {
+  color: var(--text-h);
+  font-weight: 500;
+  text-decoration: underline;
+}
+
+/* Alert messages */
+.auth-alert {
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  margin-bottom: 20px;
+}
+
+.auth-alert-error {
+  background: rgba(192, 57, 43, 0.08);
+  border: 1px solid rgba(192, 57, 43, 0.2);
+  color: var(--error);
+}
+
+.auth-alert-success {
+  background: rgba(45, 122, 79, 0.08);
+  border: 1px solid rgba(45, 122, 79, 0.2);
+  color: var(--success);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .auth-page {
+    padding: 24px 16px;
+  }
+  
+  .auth-card-new {
+    padding: 32px 24px;
+    max-width: 480px;
+  }
+  
+  .auth-title {
+    font-size: 24px;
+    margin-bottom: 24px;
+  }
+  
+  .auth-input {
+    padding: 12px 0;
+    padding-right: 50px;
+    font-size: 15px;
+  }
+  
+  .auth-form-group {
+    margin-bottom: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-card-new {
+    padding: 24px 20px;
+  }
+  
+  .auth-title {
+    font-size: 22px;
+  }
+  
+  .auth-btn {
+    padding: 12px 24px;
+    font-size: 15px;
+  }
+}
+
+/* ============================================
+   NO-HOVER AUTH CARDS (For Generate Story, Login, Register, Profile)
+   ============================================ */
+
+/* Auth card without hover effect */
+.auth-card-no-hover {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 48px;
+  width: 100%;
+  max-width: 560px;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Auth select dropdown */
+.auth-select {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  color: var(--text-h);
+  font-size: 15px;
+  font-family: var(--sans);
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s;
+  margin-bottom: 24px;
+}
+
+.auth-select:focus {
+  border-color: var(--input-focus);
+}
+
+/* Generate section spacing */
+.generate-section {
+  margin-bottom: 28px;
+}
+
+/* Question count buttons */
+.question-count-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.question-count-btn {
+  min-width: 50px;
+  padding: 10px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 500;
+  font-family: var(--sans);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.question-count-btn:hover {
+  border-color: var(--text-h);
+  color: var(--text-h);
+  background: var(--bg);
+}
+
+.question-count-btn.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.question-count-value {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 8px;
+}
+
+/* Generate back button */
+.generate-back-btn {
+  background: var(--accent);
+  color: #fff;
+  padding: 8px 16px;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 12px;
+  font-family: var(--sans);
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-bottom: 24px;
+}
+
+.generate-back-btn:hover {
+  background: var(--accent-hover);
+}
+
+.generate-modal-header {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 0px;
+}
+
+.story-play-card-wide {
+  width: 100%;
+  max-width: 800px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 40px;
+  box-shadow: var(--shadow-md);
+  margin: 0 auto;
+}
+
+.story-editor-card-wide {
+  width: 100%;
+  max-width: 900px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 40px;
+  box-shadow: var(--shadow-md);
+  margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+  .story-play-card-wide,
+  .story-editor-card-wide {
+    padding: 28px 24px;
+  }
+}
+
+/* Remove hover effect from auth pages */
+.auth-card-new {
+  transition: none !important;
+}
+
+.auth-card-new:hover {
+  transform: none !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+/* ============================================
+   MOBILE NAVBAR (HAMBURGER MENU)
+   ============================================ */
+
+/* Mobile menu button - hidden on desktop */
+.mobile-menu-btn {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: var(--text-h);
+  padding: 8px;
+  margin-left: auto;
+  z-index: 101;
+}
+
+/* Desktop nav - hidden on mobile */
+@media (max-width: 768px) {
+  .desktop-nav {
+    display: none !important;
+  }
+  
+  .mobile-menu-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* Mobile Navigation Overlay */
+.mobile-nav-overlay {
+  position: fixed;
+  top: 64px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 100;
+  animation: fadeIn 0.2s ease;
+}
+
+/* Mobile Navigation Menu */
+.mobile-nav-menu {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 280px;
+  height: 100%;
+  background: var(--bg-card);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  padding: 20px 0;
+  animation: slideIn 0.2s ease;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* Mobile Navigation Links - SAME FONT AS DESKTOP */
+.mobile-nav-link {
+  padding: 14px 24px;
+  font-size: 14px;
+  color: var(--text);
+  text-decoration: none;
+  transition: color 0.2s;
+  font-family: var(--sans);
+}
+
+.mobile-nav-link:hover,
+.mobile-nav-link.active {
+  color: var(--text-h);
+  font-weight: 500;
+  background: var(--bg);
+}
+
+/* Mobile Divider */
+.mobile-nav-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 8px 0;
+}
+
+/* Mobile Logout Button - SAME FONT AS DESKTOP */
+.mobile-nav-logout {
+  padding: 14px 24px;
+  font-size: 14px;
+  color: var(--error);
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font-family: var(--sans);
+  transition: color 0.2s;
+  width: 100%;
+}
+
+.mobile-nav-logout:hover {
+  background: var(--bg);
+  color: var(--error);
+}
+
+/* Ensure navbar right is positioned correctly */
+.navbar-right {
+  display: flex;
+  align-items: center;
+}
+
+/* Responsive navbar adjustments */
+@media (max-width: 768px) {
+  .navbar {
+    padding: 0 16px;
+  }
+  
+  .navbar-brand {
+    font-size: 22px;
+    font-family: var(--serif);
+    font-weight: 500;
+  }
+  
+  .navbar-right {
+    display: none !important;
+  }
+}
+
+/* For tablets between 768px and 1024px */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .navbar-links {
+    gap: 20px;
+  }
+  
+  .navbar-links a {
+    font-size: 14px;
+  }
+}
+
+/* ============================================
+   PAGE BANNER - FULL WIDTH WITH CENTERED TITLE (SAME AS LANDING)
+   ============================================ */
+
+.page-banner {
+  width: 100%;
+  height: 350px;
+  background: var(--banner-bg);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.page-banner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.page-banner-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  width: 100%;
+}
+
+.page-banner-title {
+  font-family: var(--serif);
+  font-size: 56px;
+  font-weight: 500;
+  color: var(--text-h);
+  margin: 0;
+  letter-spacing: -0.01em;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.page-banner-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  opacity: 0.25;
+  pointer-events: none;
+}
+
+/* Hero Banner (Landing Page only) */
+.hero-banner {
+  width: 100%;
+  height: 450px;
+  background: var(--banner-bg);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.hero-banner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.hero-banner h1 {
+  position: relative;
+  z-index: 2;
+  color: var(--text-h);
+  font-size: 64px;
+  font-weight: 500;
+  font-family: var(--serif);
+  text-align: center;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.hero-banner-actions {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+}
+
+.hero-banner-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  opacity: 0.25;
+  pointer-events: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .page-banner {
+    height: 250px;
+  }
+  
+  .page-banner-title {
+    font-size: 36px;
+  }
+  
+  .hero-banner {
+    height: 350px;
+  }
+  
+  .hero-banner h1 {
+    font-size: 40px;
+  }
+  
+  .hero-banner-actions {
+    gap: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-banner {
+    height: 200px;
+  }
+  
+  .page-banner-title {
+    font-size: 28px;
+  }
+  
+  .hero-banner {
+    height: 280px;
+  }
+  
+  .hero-banner h1 {
+    font-size: 32px;
+  }
+}
+
+/* Stories section (second recent-card) - negative amounts in red */
+.dashboard-two-columns .recent-card:last-child .recent-amount:not(.positive) {
+  color: var(--error);
+}

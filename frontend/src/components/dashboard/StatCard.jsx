@@ -5,12 +5,10 @@ export default function StatCard({ title, value, change, icon, color = 'primary'
   const isPositive = change > 0;
   const isNegative = change < 0;
 
-  // Format value to show with proper decimal places for shares
   const formattedValue = typeof value === 'number' || typeof value === 'string' 
     ? value 
     : value?.toFixed(4);
 
-  // Check if title contains BHD to add suffix
   const showBhdSuffix = title?.includes('BHD') && !title?.includes('Shares');
 
   return (

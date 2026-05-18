@@ -1,3 +1,4 @@
+// src/pages/InvestmentStoriesPage.jsx
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -581,16 +582,19 @@ export default function InvestmentStoriesPage() {
               <>
                 <div className="filter-divider" />
                 <div className="filter-chip-group">
-                  {['Draft', 'Published'].map(s => (
-                    <button
-                      key={s}
-                      className={`filter-chip ${filters.status === s.toUpperCase() ? 'active' : ''}`}
-                      onClick={() => updateFilter('status',
-                        filters.status === s.toUpperCase() ? '' : s.toUpperCase())}
-                    >
-                      {s}
-                    </button>
-                  ))}
+                  {['Draft', 'Published', 'Pending Review'].map(s => {
+                    const statusValue = s === 'Pending Review' ? 'PENDING_REVIEW' : s.toUpperCase();
+                    return (
+                      <button
+                        key={s}
+                        className={`filter-chip ${filters.status === statusValue ? 'active' : ''}`}
+                        onClick={() => updateFilter('status',
+                          filters.status === statusValue ? '' : statusValue)}
+                      >
+                        {s}
+                      </button>
+                    );
+                  })}
                 </div>
                 
                 <div className="filter-divider" />

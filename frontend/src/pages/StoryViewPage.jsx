@@ -101,7 +101,7 @@ export default function StoryViewPage() {
       <PageBanner title="Investment Stories" />
 
       <div className="story-play-content">
-        <div className="story-play-card">
+        <div className="story-play-card-wide">
           <button className="story-play-back" onClick={() => navigate('/stories')}>
             ← Back to Stories
           </button>
@@ -181,7 +181,6 @@ export default function StoryViewPage() {
               <p><strong>Your answer:</strong> {selectedOption?.optionText || 'Not answered'}</p>
               <p><strong>Reasoning:</strong> {userAnswer?.selectedOptionReasoning || (userAnswer?.isCorrect ? 'Correct choice!' : 'No explanation provided.')}</p>
               
-              {/* Only show correct answer explanation when user answered incorrectly */}
               {!userAnswer?.isCorrect && correctOption && (
                 <div className="correct-answer-explanation">
                   <p><strong>✓ Correct answer:</strong> {correctOption.optionText}</p>
@@ -189,7 +188,6 @@ export default function StoryViewPage() {
                 </div>
               )}
               
-              {/* Fallback for incorrect answers when correctOption not found */}
               {!userAnswer?.isCorrect && !correctOption && userAnswer?.correctOptionText && (
                 <div className="correct-answer-explanation">
                   <p><strong>✓ Correct answer:</strong> {userAnswer.correctOptionText}</p>

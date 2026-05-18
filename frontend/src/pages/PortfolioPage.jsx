@@ -1,4 +1,3 @@
-// src/pages/PortfolioPage.jsx
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
@@ -251,9 +250,18 @@ export default function PortfolioPage() {
       <div className="portfolio-container">
         {displayError && <Alert message={displayError} />}
 
-        {/* User Guide Section - Moved BEFORE statistics */}
+        {/* Portfolio Statistics */}
+        <PortfolioStatistics
+          cashBalance={cashBalance}
+          holdingsValue={holdingsValue}
+          totalCost={totalCost}
+          totalProfitLoss={totalProfitLoss}
+          totalProfitLossPercent={totalProfitLossPercent}
+        />
+
+        {/* User Guide Section - AFTER Statistics */}
         <div className="portfolio-guide">
-          <details className="guide-details" open>
+          <details className="guide-details">
             <summary className="guide-summary"> 📖 Understanding Your Portfolio</summary>
             <div className="guide-content">
               <div className="guide-section">
@@ -300,15 +308,6 @@ export default function PortfolioPage() {
             </div>
           </details>
         </div>
-
-        {/* Portfolio Statistics */}
-        <PortfolioStatistics
-          cashBalance={cashBalance}
-          holdingsValue={holdingsValue}
-          totalCost={totalCost}
-          totalProfitLoss={totalProfitLoss}
-          totalProfitLossPercent={totalProfitLossPercent}
-        />
 
         <HoldingsFilterBar
           searchTerm={searchTerm}

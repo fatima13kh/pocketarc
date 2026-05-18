@@ -10,6 +10,7 @@ import UserLineChartComponent from '../components/dashboard/UserLineChartCompone
 import PieChartComponent from '../components/dashboard/PieChartComponent';
 import BarChartComponent from '../components/dashboard/BarChartComponent';
 import { useEffect, useRef } from 'react';
+import { FaMoneyBillWave, FaChartLine, FaChartPie, FaPiggyBank, FaBookOpen, FaRocket } from 'react-icons/fa';
 
 export default function UserDashboard() {
   const { userDashboard, loading, error, refreshDashboard } = useDashboard();
@@ -129,40 +130,38 @@ export default function UserDashboard() {
       <PageBanner title={`Welcome back, ${username}!`} />
 
       <div className="dashboard-container">
-        <div className="dashboard-welcome">
-          <p className="welcome-text">Here's an overview of your financial journey</p>
-        </div>
+       
 
         {/* Row 1: Main Financial Stats - 5 cards */}
         <div className="dashboard-stats-grid">
           <StatCard 
             title="Cash Balance (BHD)" 
             value={cashBalance} 
-            icon="💵" 
+            icon={<FaMoneyBillWave />} 
             color="cash"
           />
           <StatCard 
             title="Investments Value (BHD)" 
             value={totalInvestments} 
-            icon="📊" 
+            icon={<FaChartLine />} 
             color="investments"
           />
           <StatCard 
             title="Total Shares Owned" 
             value={totalSharesOwned?.toFixed(4)} 
-            icon="📈" 
+            icon={<FaChartPie />} 
             color="primary"
           />
           <StatCard 
             title="Total Saved (BHD)" 
             value={totalSavingsGoals} 
-            icon="💰" 
+            icon={<FaPiggyBank />} 
             color="goals"
           />
           <StatCard 
             title="Stories Earned (BHD)" 
             value={totalStoryRewards || 0} 
-            icon="📖" 
+            icon={<FaBookOpen />} 
             color="profit"
           />
         </div>
@@ -211,7 +210,7 @@ export default function UserDashboard() {
             <h3>Goals Progress</h3>
             {completedGoals > 0 && (
               <span className="completed-goals-badge">
-                ✅ {completedGoals} completed
+                 {completedGoals} completed
               </span>
             )}
           </div>
@@ -237,14 +236,13 @@ export default function UserDashboard() {
                     </div>
                     <div className="goal-progress-footer">
                       <span className="goal-progress-percent">{goal.progressPercent}%</span>
-                      <span className="goal-remaining">🚀 {remaining.toLocaleString()} BHD left</span>
+                      <span className="goal-remaining"><FaRocket /> {remaining.toLocaleString()} BHD left</span>
                     </div>
                   </div>
                 );
               })
             ) : (
               <div className="no-active-goals-message">
-                <p>🎉 All goals completed!</p>
                 <p className="sub-message">Create new goals to save more</p>
               </div>
             )}
@@ -283,7 +281,9 @@ export default function UserDashboard() {
                     <div className="recent-info">
                       <span className="recent-title">{story.title}</span>
                     </div>
-                    <div className="recent-amount positive">+{story.reward?.toLocaleString()} BHD</div>
+                    <div className={`recent-amount ${story.reward >= 0 ? 'positive' : ''}`}>
+                      {story.reward >= 0 ? '+' : ''}{story.reward?.toLocaleString()} BHD
+                    </div>
                     <div className="recent-date">{story.completedAt}</div>
                   </div>
                 ))}

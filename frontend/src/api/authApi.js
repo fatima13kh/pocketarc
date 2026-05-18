@@ -4,12 +4,6 @@ export const authApi = {
   register: (data) =>
     axiosClient.post('/auth/register', data),
 
-  verifyOtp: (data) =>
-    axiosClient.post('/auth/verify-otp', data),
-
-  resendOtp: (data) =>
-    axiosClient.post('/auth/resend-otp', data),
-
   login: (data) =>
     axiosClient.post('/auth/login', data),
 

@@ -3,6 +3,7 @@
 export const validateUsername = (username) => {
   if (!username) return 'Username is required';
   if (username.length < 3) return 'Username must be at least 3 characters';
+  if (username.length > 50) return 'Username cannot exceed 50 characters';
   if (!/^[a-zA-Z0-9_]+$/.test(username)) {
     return 'Only letters, numbers, and underscores allowed';
   }
@@ -11,8 +12,8 @@ export const validateUsername = (username) => {
 
 export const validateEmail = (email) => {
   if (!email) return 'Email is required';
-  if (!/^[^\s@]+@(gmail\.com|outlook\.com|hotmail\.com)$/i.test(email)) {
-    return 'Only Gmail, Outlook, or Hotmail addresses accepted';
+  if (!/^[^\s@]+@(gmail\.com|outlook\.com|hotmail\.com|yahoo\.com)$/i.test(email)) {
+    return 'Only Gmail, Outlook, Hotmail, or Yahoo addresses accepted';
   }
   return null;
 };

@@ -38,7 +38,6 @@ export default function StoryPlayPage() {
       const storyRes = await storiesApi.getStory(id);
       setStory(storyRes.data);
       
-      // Load existing answers with full details
       try {
         const answersRes = await storiesApi.getUserAnswers(id);
         console.log('Loaded answers from backend:', answersRes.data);
@@ -184,7 +183,7 @@ export default function StoryPlayPage() {
         <Navbar />
         <PageBanner title="Investment Stories" />
         <div className="story-play-content">
-          <div className="story-play-card">
+          <div className="story-play-card-wide">
             <button className="story-play-back" onClick={() => navigate('/stories')}>
               ← Back to Stories
             </button>
@@ -240,7 +239,7 @@ export default function StoryPlayPage() {
       <PageBanner title="Investment Stories" />
 
       <div className="story-play-content">
-        <div className="story-play-card">
+        <div className="story-play-card-wide">
           <button className="story-play-back" onClick={() => navigate('/stories')}>
             ← Back to Stories
           </button>
@@ -336,7 +335,6 @@ export default function StoryPlayPage() {
             </div>
           )}
 
-          {/* Display reasoning for newly answered question */}
           {answerResult && (
             <div className={`story-reasoning ${answerResult.isCorrect ? 'correct' : 'wrong'}`}>
               <div className="reasoning-header">
@@ -346,7 +344,6 @@ export default function StoryPlayPage() {
                 <p><strong>Your choice:</strong> {answerResult.selectedOptionText}</p>
                 <p><strong>Reasoning:</strong> {answerResult.selectedOptionReasoning}</p>
                 
-                {/* ALWAYS show correct answer with its reasoning, especially when wrong */}
                 {correctOption && (
                   <div className="correct-answer-explanation">
                     <p><strong>✓ Correct answer:</strong> {correctOption.optionText}</p>
@@ -357,7 +354,6 @@ export default function StoryPlayPage() {
             </div>
           )}
 
-          {/* Display reasoning for previously answered question (when navigating back) */}
           {isCurrentAnswered && !answerResult && answers[currentQuestion.id] && (
             <div className={`story-reasoning ${answers[currentQuestion.id].isCorrect ? 'correct' : 'wrong'}`}>
               <div className="reasoning-header">
@@ -367,7 +363,6 @@ export default function StoryPlayPage() {
                 <p><strong>Your choice:</strong> {answers[currentQuestion.id].selectedOptionText}</p>
                 <p><strong>Reasoning:</strong> {answers[currentQuestion.id].selectedOptionReasoning}</p>
                 
-                {/* ALWAYS show correct answer with its reasoning for previously answered questions */}
                 {correctOption && (
                   <div className="correct-answer-explanation">
                     <p><strong>✓ Correct answer:</strong> {correctOption.optionText}</p>

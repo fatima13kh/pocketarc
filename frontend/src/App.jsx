@@ -7,7 +7,7 @@ import { DashboardProvider } from './context/DashboardContext';
 import LandingPage from './components/layout/LandingPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
-import VerifyOtpPage from './pages/VerifyOtpPage';
+// REMOVED: import VerifyOtpPage from './pages/VerifyOtpPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import ProfilePage from './pages/ProfilePage';
@@ -51,7 +51,7 @@ function AppRoutes() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<GuestRoute><LoginPage /></GuestRoute>} />
       <Route path="/register" element={<GuestRoute><RegisterPage /></GuestRoute>} />
-      <Route path="/verify-otp" element={<GuestRoute><VerifyOtpPage /></GuestRoute>} />
+      {/* REMOVED: /verify-otp route */}
       <Route path="/forgot-password" element={<GuestRoute><ForgotPasswordPage /></GuestRoute>} />
       <Route path="/reset-password" element={<GuestRoute><ResetPasswordPage /></GuestRoute>} />
 

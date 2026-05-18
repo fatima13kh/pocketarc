@@ -115,7 +115,6 @@ export default function StoryEditorPage() {
       const options = [...questions[qIdx].options];
 
       if (field === 'isCorrect' && value === true) {
-        // Only one correct per question
         options.forEach((o, i) => { options[i] = { ...o, isCorrect: false }; });
       }
 
@@ -201,7 +200,7 @@ export default function StoryEditorPage() {
       <PageBanner title="Investment Stories" />
 
       <div className="story-editor-content">
-        <div className="story-editor-card">
+        <div className="story-editor-card-wide">
           <button
             className="story-play-back"
             onClick={() => navigate('/admin/stories')}
@@ -273,14 +272,14 @@ export default function StoryEditorPage() {
             </div>
           </div>
 
-          {/* ✅ Opening Content / Story Context */}
+          {/* Opening Content / Story Context */}
           <label className="story-editor-label">Story Context / Opening Content:</label>
           <textarea
             className="story-editor-textarea"
             rows="4"
             value={form.openingContent}
             onChange={e => setForm(p => ({ ...p, openingContent: e.target.value }))}
-            placeholder="Example: Meet Emily, a 30-year-old marketing manager who has a yearly income of $80,000. She wants to save $100,000 in 5 years for a down payment on a house."
+            placeholder="Example: Meet Emily, a 30-year-old marketing manager who has a yearly income of 80,000 BHD. She wants to save 100,000 BHD in 5 years for a down payment on a house."
             disabled={!!hasPlaysWarning}
           />
           

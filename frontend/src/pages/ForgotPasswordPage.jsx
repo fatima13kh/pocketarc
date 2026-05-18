@@ -38,7 +38,7 @@ export default function ForgotPasswordPage() {
           <h2 className="auth-card-title">Forgot Password</h2>
 
           <p className="text-center text-muted" style={{ marginBottom: '24px', fontSize: '13px' }}>
-            Enter your email and we'll send you a reset code.
+            Enter your email and we'll send you a reset link.
           </p>
 
           <Alert message={error} />
@@ -53,7 +53,7 @@ export default function ForgotPasswordPage() {
               autoComplete="email"
             />
             <Button type="submit" fullWidth loading={loading}>
-              Send Reset Code
+              Send Reset Link
             </Button>
           </form>
 
