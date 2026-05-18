@@ -15,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final OtpCodeRepository otpCodeRepository;
     private final InvestmentTransactionRepository investmentTransactionRepository;
     private final SavingsGoalRepository savingsGoalRepository;
     private final UserStoryProgressRepository userStoryProgressRepository;
@@ -31,20 +30,28 @@ public class UserService {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // UPDATE PROFILE
+    // UPDATE PROFILE (Username, Email, Phone Number - No password required)
     // ─────────────────────────────────────────────────────────────────────────
 
     @Transactional
     public UserResponse updateProfile(Long userId, UpdateProfileRequest request) {
         User user = findUserById(userId);
 
-        // Current password is required to make any changes
-        if (request.currentPassword() == null || request.currentPassword().isBlank()) {
-            throw new BusinessException("Current password is required to update your profile");
-        }
+        // Track if we're changing password
+        boolean isChangingPassword = request.newPassword() != null && !request.newPassword().isBlank();
 
-        if (!passwordEncoder.matches(request.currentPassword(), user.getPasswordHash())) {
-            throw new BusinessException("Current password is incorrect");
+        // If changing password, current password is required
+        if (isChangingPassword) {
+            if (request.currentPassword() == null || request.currentPassword().isBlank()) {
+                throw new BusinessException("Current password is required to change password");
+            }
+            if (!passwordEncoder.matches(request.currentPassword(), user.getPasswordHash())) {
+                throw new BusinessException("Current password is incorrect");
+            }
+            if (passwordEncoder.matches(request.newPassword(), user.getPasswordHash())) {
+                throw new BusinessException("New password must be different from current password");
+            }
+            user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
         }
 
         // Update username if provided and different
@@ -67,7 +74,7 @@ public class UserService {
             }
         }
 
-        // Update phone if provided and different — admin has no phone requirement
+        // Update phone if provided and different
         if (request.phoneNumber() != null && !request.phoneNumber().isBlank()) {
             if (!request.phoneNumber().equals(user.getPhoneNumber())) {
                 if (userRepository.existsByPhoneNumber(request.phoneNumber())) {
@@ -75,15 +82,6 @@ public class UserService {
                 }
                 user.setPhoneNumber(request.phoneNumber());
             }
-        }
-
-        // Update password if new one provided
-        if (request.newPassword() != null && !request.newPassword().isBlank()) {
-            if (passwordEncoder.matches(request.newPassword(), user.getPasswordHash())) {
-                throw new BusinessException(
-                        "New password must be different from current password");
-            }
-            user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
         }
 
         userRepository.save(user);
@@ -100,8 +98,7 @@ public class UserService {
 
         // Must type DELETE to confirm
         if (!"DELETE".equals(request.confirmation())) {
-            throw new BusinessException(
-                    "Please type DELETE to confirm account deletion");
+            throw new BusinessException("Please type DELETE to confirm account deletion");
         }
 
         // Must provide correct password
@@ -109,16 +106,11 @@ public class UserService {
             throw new BusinessException("Incorrect password");
         }
 
-        // Delete all related data first (cascades handle most,
-        // but OTPs need explicit delete due to relationship)
-        otpCodeRepository.deleteAllByUser(user);
-
         // Delete the user — cascades will remove goals, transactions,
         // story progress, and responses automatically
         userRepository.delete(user);
 
-        return new ApiResponse(true,
-                "Your account has been permanently deleted.");
+        return new ApiResponse(true, "Your account has been permanently deleted.");
     }
 
     // ─────────────────────────────────────────────────────────────────────────

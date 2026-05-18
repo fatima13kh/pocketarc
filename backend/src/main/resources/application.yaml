@@ -42,10 +42,6 @@ cloudinary:
   api-key: ${CLOUDINARY_API_KEY}
   api-secret: ${CLOUDINARY_API_SECRET}
 
-resend:
-  api-key: ${RESEND_API_KEY}
-  from-email: ${RESEND_FROM_EMAIL:noreply@resend.dev}
-
 twelve-data:
   api-key: ${TWELVE_DATA_API_KEY}
 
@@ -64,3 +60,7 @@ app:
     email: ${ADMIN_EMAIL}
     password: ${ADMIN_PASSWORD}
     phone: ${ADMIN_PHONE}
+
+# Brevo API (for email)
+brevo:
+  api-key: ${BREVO_API_KEY}

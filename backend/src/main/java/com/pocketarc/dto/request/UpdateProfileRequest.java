@@ -13,8 +13,8 @@ public record UpdateProfileRequest(
 
         @Email(message = "Invalid email format")
         @Pattern(
-                regexp = "^[a-zA-Z0-9._%+\\-]+@(gmail\\.com|outlook\\.com|hotmail\\.com)$",
-                message = "Only Gmail, Outlook, or Hotmail addresses are accepted"
+                regexp = "^[a-zA-Z0-9._%+\\-]+@(gmail\\.com|outlook\\.com|hotmail\\.com|yahoo\\.com)$",
+                message = "Only Gmail, Outlook, Hotmail, or Yahoo addresses are accepted"
         )
         String email,
 
@@ -24,7 +24,7 @@ public record UpdateProfileRequest(
         )
         String phoneNumber,
 
-        // Must provide current password to make any changes
+        // Optional: only required if changing password
         String currentPassword,
 
         @Size(min = 8, message = "Password must be at least 8 characters")

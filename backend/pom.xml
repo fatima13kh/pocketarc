@@ -96,6 +96,7 @@
             <scope>runtime</scope>
         </dependency>
 
+
         <!-- ===== CLOUDINARY (image upload) ===== -->
         <dependency>
             <groupId>com.cloudinary</groupId>
@@ -103,11 +104,10 @@
             <version>1.38.0</version>
         </dependency>
 
-        <!-- ===== RESEND (email / OTP) ===== -->
+        <!-- ===== SPRING BOOT MAIL ===== -->
         <dependency>
-            <groupId>com.resend</groupId>
-            <artifactId>resend-java</artifactId>
-            <version>3.1.0</version>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
 
         <!-- ===== OKHTTP (external API calls) ===== -->

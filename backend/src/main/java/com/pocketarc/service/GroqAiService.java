@@ -92,12 +92,14 @@ public class GroqAiService {
             - Each question must have exactly 3 choices
             - One choice per question must be correct
             - Include clear financial reasoning for each choice
+            - IMPORTANT: All monetary values MUST be in Bahraini Dinar (BHD) only. Use "BHD" as the currency.
+            - Do NOT use USD, dollars, or any other currency. Only use BHD.
             
             Respond ONLY with valid JSON in this exact format. Do not include any text before or after the JSON.
             
             {
               "title": "Story title here",
-              "openingContent": "Brief story context here",
+              "openingContent": "Brief story context here (use BHD for any money amounts)",
               "rewardPerCorrect": 200,
               "penaltyPerWrong": 100,
               "questions": [
