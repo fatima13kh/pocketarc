@@ -1,4 +1,3 @@
-// src/main/java/com/pocketarc/service/dashboard/UserDashboardService.java
 package com.pocketarc.service.dashboard;
 
 import com.pocketarc.dto.response.UserDashboardResponse;
@@ -149,26 +148,36 @@ public class UserDashboardService extends BaseDashboardService {
     }
 
     private List<UserDashboardResponse.PortfolioAllocation> generatePortfolioAllocation(Map<Long, BigDecimal> holdings) {
-        List<UserDashboardResponse.PortfolioAllocation> allocation = new ArrayList<>();
-        BigDecimal totalValue = calculateCurrentInvestmentsValue(holdings);
+        // Group by sector instead of individual stocks
+        Map<String, BigDecimal> sectorValues = new HashMap<>();
 
         for (Map.Entry<Long, BigDecimal> entry : holdings.entrySet()) {
             Stock stock = stockRepository.findById(entry.getKey()).orElse(null);
             if (stock != null && stock.getCurrentPriceBhd() != null) {
+                String sector = stock.getSector() != null ? stock.getSector() : "Other";
                 BigDecimal value = entry.getValue().multiply(stock.getCurrentPriceBhd());
-                BigDecimal percentage = totalValue.compareTo(BigDecimal.ZERO) > 0
-                        ? value.divide(totalValue, 4, RoundingMode.HALF_UP).multiply(new BigDecimal(100))
-                        : BigDecimal.ZERO;
-
-                allocation.add(UserDashboardResponse.PortfolioAllocation.builder()
-                        .symbol(stock.getSymbol())
-                        .companyName(stock.getCompanyName())
-                        .value(value)
-                        .percentage(percentage)
-                        .sector(stock.getSector() != null ? stock.getSector() : "General")
-                        .build());
+                sectorValues.put(sector, sectorValues.getOrDefault(sector, BigDecimal.ZERO).add(value));
             }
         }
+
+        BigDecimal totalValue = sectorValues.values().stream()
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        List<UserDashboardResponse.PortfolioAllocation> allocation = new ArrayList<>();
+        for (Map.Entry<String, BigDecimal> entry : sectorValues.entrySet()) {
+            BigDecimal percentage = totalValue.compareTo(BigDecimal.ZERO) > 0
+                    ? entry.getValue().divide(totalValue, 4, RoundingMode.HALF_UP).multiply(new BigDecimal(100))
+                    : BigDecimal.ZERO;
+
+            allocation.add(UserDashboardResponse.PortfolioAllocation.builder()
+                    .symbol(entry.getKey())
+                    .companyName(entry.getKey())
+                    .value(entry.getValue())
+                    .percentage(percentage)
+                    .sector(entry.getKey())
+                    .build());
+        }
+
         allocation.sort((a, b) -> b.getValue().compareTo(a.getValue()));
         return allocation;
     }

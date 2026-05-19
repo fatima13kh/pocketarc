@@ -96,6 +96,12 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!-- Resend (email) -->
+        <dependency>
+            <groupId>com.resend</groupId>
+            <artifactId>resend-java</artifactId>
+            <version>3.1.0</version>
+        </dependency>
 
         <!-- ===== CLOUDINARY (image upload) ===== -->
         <dependency>
