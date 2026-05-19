@@ -322,9 +322,6 @@ public class StockMarketService {
             Map<String, Object> point = new HashMap<>();
             point.put("date", hp.getDate().toString());
             point.put("close", hp.getClosePriceBhd());
-            point.put("open", hp.getOpenPriceBhd() != null ? hp.getOpenPriceBhd() : hp.getClosePriceBhd());
-            point.put("high", hp.getHighPriceBhd() != null ? hp.getHighPriceBhd() : hp.getClosePriceBhd());
-            point.put("low", hp.getLowPriceBhd() != null ? hp.getLowPriceBhd() : hp.getClosePriceBhd());
             history.add(point);
         }
         return history;

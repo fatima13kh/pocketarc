@@ -22,17 +22,6 @@ public class StockPriceHistory {
     @Column(nullable = false)
     private LocalDate date;
 
-    @Column(name = "open_price_bhd", precision = 12, scale = 4)
-    private BigDecimal openPriceBhd;
-
-    @Column(name = "high_price_bhd", precision = 12, scale = 4)
-    private BigDecimal highPriceBhd;
-
-    @Column(name = "low_price_bhd", precision = 12, scale = 4)
-    private BigDecimal lowPriceBhd;
-
     @Column(name = "close_price_bhd", nullable = false, precision = 12, scale = 4)
     private BigDecimal closePriceBhd;
-
-    private Long volume;
 }

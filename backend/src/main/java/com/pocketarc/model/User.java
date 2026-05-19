@@ -32,10 +32,6 @@ public class User {
     @Builder.Default
     private Boolean isAdmin = false;
 
-    @Column(name = "is_verified", nullable = false)
-    @Builder.Default
-    private Boolean isVerified = false;
-
     @Column(name = "cash_balance", nullable = false, precision = 12, scale = 2)
     @Builder.Default
     private BigDecimal cashBalance = BigDecimal.ZERO;

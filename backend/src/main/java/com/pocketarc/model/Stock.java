@@ -32,14 +32,6 @@ public class Stock {
     @Column(name = "change_percentage", precision = 8, scale = 4)
     private BigDecimal changePercentage;
 
-    @Column(name = "day_high_bhd", precision = 12, scale = 4)
-    private BigDecimal dayHighBhd;
-
-    @Column(name = "day_low_bhd", precision = 12, scale = 4)
-    private BigDecimal dayLowBhd;
-
-    private Long volume;
-
     @Column(name = "last_price_update")
     private LocalDateTime lastPriceUpdate;
 

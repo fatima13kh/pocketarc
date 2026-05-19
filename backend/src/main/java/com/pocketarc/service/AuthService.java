@@ -42,7 +42,6 @@ public class AuthService {
                 .phoneNumber(request.phoneNumber())
                 .passwordHash(passwordEncoder.encode(request.password()))
                 .isAdmin(false)
-                .isVerified(true)
                 .cashBalance(STARTING_BALANCE)
                 .build();
 
