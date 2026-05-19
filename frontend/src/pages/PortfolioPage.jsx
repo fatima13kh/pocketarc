@@ -262,10 +262,10 @@ export default function PortfolioPage() {
         {/* User Guide Section - AFTER Statistics */}
         <div className="portfolio-guide">
           <details className="guide-details">
-            <summary className="guide-summary"> 📖 Understanding Your Portfolio</summary>
+            <summary className="guide-summary">  Understanding Your Portfolio</summary>
             <div className="guide-content">
               <div className="guide-section">
-                <h4>💰 Your Spendable Cash</h4>
+                <h4> Your Spendable Cash</h4>
                 <ul>
                   <li>This is the money you can actually USE for savings goals and investment stories</li>
                   <li>When you sell stocks, this amount increases</li>
@@ -275,7 +275,7 @@ export default function PortfolioPage() {
               </div>
               
               <div className="guide-section">
-                <h4>📊 Understanding Your Stock Value</h4>
+                <h4> Understanding Your Stock Value</h4>
                 <ul>
                   <li><strong>Current Stock Value:</strong> What your stocks are worth right now based on live market prices</li>
                   <li><strong>Total Cost:</strong> What you originally paid for your stocks (your investment basis)</li>
@@ -286,7 +286,7 @@ export default function PortfolioPage() {
               </div>
 
               <div className="guide-section">
-                <h4>📈 Understanding Profit & Loss (P&L)</h4>
+                <h4> Understanding Profit & Loss (P&L)</h4>
                 <ul>
                   <li><strong>Unrealized P&L:</strong> Paper profit/loss on stocks you still own - <span className="warning-text">not real until you sell!</span></li>
                   <li><strong>Realized P&L:</strong> Actual profit/loss from stocks you've already sold - <span className="success-text">this is real money!</span></li>
@@ -295,14 +295,14 @@ export default function PortfolioPage() {
               </div>
 
               <div className="guide-section">
-                <h4>💡 Pro Tips</h4>
+                <h4> Pro Tips</h4>
                 <ul>
-                  <li>🔍 Use the search bar to find specific stocks</li>
-                  <li>📂 Filter by category to see stocks from specific sectors</li>
-                  <li>📊 Sort by Value, Change, or Shares to organize your portfolio</li>
-                  <li>💰 Click <strong>Buy More</strong> to add to your position</li>
-                  <li>💸 Click <strong>Sell All</strong> or <strong>Sell Partial</strong> to take profits or cut losses</li>
-                  <li>📈 Stock prices update every 2 hours with real market data</li>
+                  <li> Use the search bar to find specific stocks</li>
+                  <li> Filter by category to see stocks from specific sectors</li>
+                  <li> Sort by Value, Change, or Shares to organize your portfolio</li>
+                  <li> Click <strong>Buy More</strong> to add to your position</li>
+                  <li> Click <strong>Sell All</strong> or <strong>Sell Partial</strong> to take profits or cut losses</li>
+                  <li> Stock prices update every 2 hours with real market data</li>
                 </ul>
               </div>
             </div>

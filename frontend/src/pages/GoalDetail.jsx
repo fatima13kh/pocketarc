@@ -9,7 +9,7 @@ import Alert from '../components/common/Alert';
 import Spinner from '../components/common/Spinner';
 import { validateAddFunds } from '../validation/goalValidation';
 import { useGoals } from '../context/GoalsContext';
-import GoalProjection from '../components/goals/GoalProjection'; // ADD THIS IMPORT
+import GoalProjection from '../components/goals/GoalProjection';
 
 const CATEGORY_LABELS = {
   EMERGENCY: 'Emergency', 
@@ -236,7 +236,7 @@ export default function GoalDetail() {
               </div>
             </div>
 
-            {/* ADD THE PROJECTION COMPONENT HERE */}
+            {/* PROJECTION COMPONENT  */}
             <GoalProjection goal={goal} />
 
             <div className="goal-detail-actions">

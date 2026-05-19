@@ -236,10 +236,10 @@ export default function InvestmentSimulatorPage() {
         {/* User Guide Section */}
         <div className="stocks-guide">
           <details className="guide-details">
-            <summary className="guide-summary"> 📖 Understanding Stock Prices & Changes</summary>
+            <summary className="guide-summary">  Understanding Stock Prices & Changes</summary>
             <div className="guide-content">
               <div className="guide-section">
-                <h4>📊 Price & Change Information</h4>
+                <h4> Price & Change Information</h4>
                 <ul>
                   <li><strong>↑ Green / ↓ Red:</strong> Shows if the stock price went <span className="positive-text">up</span> or <span className="negative-text">down</span></li>
                   <li><strong>Percentage (e.g., +1.05%):</strong> How much the price changed compared to previous close</li>
@@ -248,7 +248,7 @@ export default function InvestmentSimulatorPage() {
                 </ul>
               </div>
               <div className="guide-section">
-                <h4>📈 Price History Chart</h4>
+                <h4> Price History Chart</h4>
                 <ul>
                   <li>The chart shows the stock's closing price over the last 30 days</li>
                   <li><strong>Green line:</strong> Overall upward trend</li>
@@ -257,7 +257,7 @@ export default function InvestmentSimulatorPage() {
                 </ul>
               </div>
               <div className="guide-section">
-                <h4>💡 Tips</h4>
+                <h4> Tips</h4>
                 <ul>
                   <li>Prices update every 2 hours from real market data</li>
                   <li>After buying, check your Portfolio to track profit/loss</li>

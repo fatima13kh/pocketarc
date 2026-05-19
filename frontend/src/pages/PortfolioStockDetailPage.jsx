@@ -290,7 +290,7 @@ export default function PortfolioStockDetailPage() {
             <div className="stock-chart">
               <h3>Price History (30 Days)</h3>
               <div className="chart-legend-simple">
-                <span className="legend-hint">💡 Hover over the chart to see exact prices</span>
+                <span className="legend-hint"> Hover over the chart to see exact prices</span>
               </div>
               <div className="chart-wrapper">
                 <LineChart

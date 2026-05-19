@@ -600,7 +600,7 @@ export default function InvestmentStoriesPage() {
                 <div className="filter-divider" />
                 <div className="filter-chip-group">
                   {AUTHOR_TYPES.map(type => {
-                    const displayLabel = type === 'AI_GENERATED' ? '🤖 AI Generated' : '👨‍💼 Admin';
+                    const displayLabel = type === 'AI_GENERATED' ? ' AI Generated' : ' Admin';
                     return (
                       <button
                         key={type}
@@ -622,7 +622,7 @@ export default function InvestmentStoriesPage() {
                       className={`filter-chip ${activePlaysStatus === status ? 'active' : ''}`}
                       onClick={() => handlePlaysStatusFilter(status)}
                     >
-                      {status === 'Has Plays' ? '📊 Has Plays' : '✨ No Plays'}
+                      {status === 'Has Plays' ? ' Has Plays' : ' No Plays'}
                     </button>
                   ))}
                 </div>

@@ -393,7 +393,7 @@ export default function ProfilePage() {
           {showDelete && (
             <form onSubmit={handleDelete}>
               <div className="auth-alert auth-alert-error" style={{ marginBottom: '20px' }}>
-                <strong>⚠️ This action is permanent.</strong> Your account and all data will be deleted and cannot be recovered.
+                <strong> This action is permanent.</strong> Your account and all data will be deleted and cannot be recovered.
               </div>
 
               {deleteErrors.api && <div className="auth-alert auth-alert-error">{deleteErrors.api}</div>}

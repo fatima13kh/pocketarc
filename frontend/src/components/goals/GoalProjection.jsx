@@ -13,9 +13,9 @@ const CustomTooltip = ({ active, payload, label }) => {
       <div className="projection-tooltip">
         <p className="tooltip-label">{label}</p>
         <p className="tooltip-amount">{payload[0].value.toLocaleString()} BHD</p>
-        {isCurrent && <p className="tooltip-note">📍 Current amount</p>}
-        {reachedTarget && <p className="tooltip-note">🎯 Target reached!</p>}
-        {!isCurrent && !reachedTarget && <p className="tooltip-note">📈 Projected</p>}
+        {isCurrent && <p className="tooltip-note"> Current amount</p>}
+        {reachedTarget && <p className="tooltip-note"> Target reached!</p>}
+        {!isCurrent && !reachedTarget && <p className="tooltip-note"> Projected</p>}
       </div>
     );
   }
@@ -151,7 +151,7 @@ export default function GoalProjection({ goal }) {
                         fontWeight={600}
                         dominantBaseline="middle"
                       >
-                        🎯 Target: {goal.targetAmount.toLocaleString()} BHD
+                         Target: {goal.targetAmount.toLocaleString()} BHD
                       </text>
                     </g>
                   );
@@ -185,7 +185,6 @@ export default function GoalProjection({ goal }) {
           {/* Enhanced Chart Note with Calculation Breakdown */}
           <div className="chart-note-enhanced">
             <div className="note-main">
-              <span className="note-icon">📊</span>
               <span className="note-text">
                 Based on <strong>{avgMonthly.toLocaleString()} BHD/month</strong> average contribution
               </span>

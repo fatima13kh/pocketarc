@@ -221,7 +221,7 @@ export default function StoryEditorPage() {
               fontSize: '13px',
               marginBottom: '16px',
             }}>
-              ⚠️ {similarWarning}
+               {similarWarning}
             </div>
           )}
           <Alert message={apiError} />

@@ -10,7 +10,6 @@ import UserLineChartComponent from '../components/dashboard/UserLineChartCompone
 import PieChartComponent from '../components/dashboard/PieChartComponent';
 import BarChartComponent from '../components/dashboard/BarChartComponent';
 import { useEffect, useRef } from 'react';
-import { FaMoneyBillWave, FaChartLine, FaChartPie, FaPiggyBank, FaBookOpen, FaRocket } from 'react-icons/fa';
 
 export default function UserDashboard() {
   const { userDashboard, loading, error, refreshDashboard } = useDashboard();
@@ -137,31 +136,31 @@ export default function UserDashboard() {
           <StatCard 
             title="Cash Balance (BHD)" 
             value={cashBalance} 
-            icon={<FaMoneyBillWave />} 
+            icon={null}
             color="cash"
           />
           <StatCard 
             title="Investments Value (BHD)" 
             value={totalInvestments} 
-            icon={<FaChartLine />} 
+            icon={null}
             color="investments"
           />
           <StatCard 
             title="Total Shares Owned" 
             value={totalSharesOwned?.toFixed(4)} 
-            icon={<FaChartPie />} 
+            icon={null}
             color="primary"
           />
           <StatCard 
             title="Total Saved (BHD)" 
             value={totalSavingsGoals} 
-            icon={<FaPiggyBank />} 
+            icon={null}
             color="goals"
           />
           <StatCard 
             title="Stories Earned (BHD)" 
             value={totalStoryRewards || 0} 
-            icon={<FaBookOpen />} 
+            icon={null}
             color="profit"
           />
         </div>
@@ -236,7 +235,7 @@ export default function UserDashboard() {
                     </div>
                     <div className="goal-progress-footer">
                       <span className="goal-progress-percent">{goal.progressPercent}%</span>
-                      <span className="goal-remaining"><FaRocket /> {remaining.toLocaleString()} BHD left</span>
+                      <span className="goal-remaining">{remaining.toLocaleString()} BHD left</span>
                     </div>
                   </div>
                 );
